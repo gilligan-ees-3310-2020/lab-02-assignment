@@ -5,8 +5,10 @@ ssource <- function(filename, chdir = F) {
   if(!file.exists(filename)) {
     if(exists("script_dir")) script_dir = script_dir
     else if (exists("script.dir")) script_dir = script.dir
-    else if (dir.exists("scripts")) script_dir = "scripts"
+    else if (dir.exists("_scripts")) script_dir = "_scripts"
+    else if (dir.exists("_scripts")) script_dir = "scripts"
     if(dir.exists(script_dir)) filename = file.path(script_dir, filename)
+    else stop("Could not find script directory.")
   }
   source(filename, chdir = chdir,
          local = FALSE, echo=FALSE, print.eval = FALSE, verbose = FALSE)
@@ -17,7 +19,7 @@ if (! exists("planck")) ssource("planck.R", chdir = T)
 
 
 
-model_params = data_frame(
+model_params = tibble(
   key = c("co2_ppm",
           "ch4_ppm",
           "trop_o3_ppb",
@@ -57,7 +59,7 @@ model_params = data_frame(
             NA, "sensor_orientation")
 )
 
-atmos_spec <- data_frame(
+atmos_spec <- tibble(
   key = c("tropical",
           "midlatitude summer", "midlatitude winter",
           "subarctic summer", "subarctic winter",
@@ -71,13 +73,13 @@ atmos_spec <- data_frame(
   )
 )
 
-h2o_fixed <- data_frame(
+h2o_fixed <- tibble(
   key = c("vapor pressure", "relative humidity"),
   value = c(0, 1),
   descr = c("constant vapor pressure", "constant relative humidity")
 )
 
-cloud_spec <- data_frame(
+cloud_spec <- tibble(
   key = c("none",
           "cumulus",
           "altostratus",
@@ -109,13 +111,13 @@ cloud_spec <- data_frame(
             "NOAA cirrus model")
 )
 
-sensor_orientation <- data_frame(
+sensor_orientation <- tibble(
   key = c("down", "up"),
   value = c(180, 0),
   descr = c("looking down", "looking up")
 )
 
-run_modtran <- function(filename,
+run_modtran <- function(filename = NULL,
                         co2_ppm = 400,
                         ch4_ppm = 1.7,
                         trop_o3_ppb = 28,
@@ -150,7 +152,7 @@ run_modtran <- function(filename,
     # message("Lookup class = ", class(lookup), ", type = ", typeof(lookup), ", dim = ", dim(lookup))
     values[k] = lookup %>% filter(key == values[k]) %>% select(value) %>% simplify()
   }
-  args <- data_frame(key = names(values), value = values)
+  args <- tibble(key = names(values), value = values)
   params = model_params %>% inner_join(args, by = "key")
   url_base = 'http://climatemodels.uchicago.edu/cgi-bin/modtran/modtran.cgi?'
   args = str_c(params$cgi, params$value, sep = "=", collapse = "&")
@@ -160,7 +162,9 @@ run_modtran <- function(filename,
   output = read_html(url)
   body <- as_list(output) %>% unlist() %>% simplify()
   # lines <- body %>% str_split("\n") %>% unlist() %>% simplify()
-  write(body, filename)
+  if (! is.null(filename)) {
+    write(body, filename)
+  }
   invisible(body)
 }
 
@@ -189,6 +193,10 @@ read_modtran_profile <- function(filename, text = NULL) {
   profile
 }
 
+extract_tropopause <- function(profile) {
+  profile %>% filter(T <= lead(T)) %>% top_n(-1, Z)
+}
+
 read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
   if (missing(filename) && ! is.null(text)) {
     lines <- text %>% str_split("\n") %>% unlist()
@@ -198,6 +206,9 @@ read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
     close(f)
   }
   profile <- read_modtran_profile(text = lines)
+  tropopause <- extract_tropopause(profile)
+  t_ground = profile$T[1]
+
   im <- str_detect(lines, "^0INTEGRATED RADIANCE") %>% which()
   target <- lines[im[1]]
   x <- str_extract(target, "[0-9]\\.[0-9]*E[+-][0-9]+")
@@ -207,8 +218,10 @@ read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
     which()
   target <- lines[im[1]]
   x <- target %>% str_trim() %>% str_split(" +") %>% unlist()
-  x <- x[7:12] %>% map_dbl(~as.numeric(.x)) %>% set_names(x[1:6])
-  co2 <- x['co2mx']
+  n_names <- length(x) / 2
+  x <- x[seq(n_names + 1, 2 * n_names)] %>%
+    map_dbl(~as.numeric(.x)) %>% set_names(x[1:n_names])
+  xxco2 <- x['co2mx']
   ch4 <- x['ch4rat'] * 1.7
   im <- str_detect(lines, fixed("0 SLANT PATH TO SPACE")) %>% which()
   target <-lines[[im + 1]]
@@ -238,7 +251,10 @@ read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
                  co2=co2, ch4=ch4,
                  i_out = integrated_radiance,
                  alt = altitude, sensor_direction = direction,
-                 profile = profile))
+                 profile = profile,
+                 h_tropo = tropopause$Z,
+                 t_tropo = tropopause$T,
+                 t_ground = t_ground))
 }
 
 plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
@@ -250,8 +266,9 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                          annotate_y_1 = 0.49, annotate_y_2 = 0.44,
                          annotate_size = 5, text_size = 10,
                          legend_text_size = 10, legend_size = 0.2,
-                         line_scale = 1, direction = "out") {
-  x  <- read_modtran(filename)
+                         line_scale = 1, direction = "out",
+                         text = NULL) {
+  x  <- read_modtran(filename = filename, text = text)
   spectrum <- x$spectrum
   alt <- x$alt
   co2 <- x$co2
@@ -277,9 +294,9 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
   tlist <- tmin + dt * seq(0,nc-1)
   hues <- c(hsv(max_color - (dh * seq(0, nc - 1 )), 0.9, 0.8), "black")
 
-  thermal <- data.frame(k = spectrum$k, t = tmin)
+  thermal <- tibble(k = spectrum$k, t = tmin)
   thermal <- bind_rows(thermal, map(seq(tmin + dt, tmax, dt),
-                                    ~data_frame(k = spectrum$k, t = .x)))
+                                    ~tibble(k = spectrum$k, t = .x)))
   thermal <- thermal %>%
     mutate(tk = planck(k, as.numeric(as.character(t)),fudge_factor=1),
            t = paste(t, "K") %>%
@@ -311,14 +328,14 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
   if (! is.na(annotate_size)) {
     p1 <- p1 + annotate("text", x=annotate_x_1, y=annotate_y_1,
                         label=caption, parse="TRUE", hjust=0, vjust=1,
-                        size=annotate_size, color="dark blue")
+                        size=annotate_size, color="darkblue")
 
     if (! is.na(delta_i)) {
       caption <- paste("Delta * I[", direction, "] == ",
                        formatC(delta_i, digits=2, format="f"))
       p1 <- p1 + annotate("text", x=annotate_x_2, y=annotate_y_1,
                           label=caption, parse="TRUE", hjust=1, vjust=1,
-                          size=annotate_size, color="dark blue")
+                          size=annotate_size, color="darkblue")
     }
 
     if (! is.na(last_i_out)) {
@@ -326,7 +343,7 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                                             digits=2, format="f"))
       p1 <- p1 + annotate("text", x=annotate_x_2, y=annotate_y_2,
                           label=caption, parse="TRUE", hjust=1, vjust=1,
-                          size=annotate_size, color="dark blue")
+                          size=annotate_size, color="darkblue")
     } else if (! is.na(delta_t)) {
       caption <- paste("Delta * T[ground] == ",formatC(delta_t,
                                                        digits=delta_t_digits,
@@ -334,7 +351,7 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                        " * K")
       p1 <- p1 + annotate("text", x=annotate_x_2, y=annotate_y_2,
                           label=caption, parse="TRUE", hjust=1, vjust=1,
-                          size=annotate_size, color="dark blue")
+                          size=annotate_size, color="darkblue")
 
     }
   }

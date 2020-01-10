@@ -1,7 +1,7 @@
 ---
-title: 'EES 3310/5310 Lab #2'
+title: 'EES 3310/5310 Lab #2 Assignment, Part 2'
 author: "put your name here"
-date: 'Lab: Mon. Sept. 3. Due: Mon. Sept. 10.'
+date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
 fontfamily: "newtxtext,newtxmath"
 fontsize: "12pt"
 output:
@@ -18,10 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # useful functions format_md.
 # 
 data_dir = "_data"
-script_dir = "scripts"
+script_dir = "_scripts"
 
 library(pacman)
-p_load(zoo, xml2, tidyverse, stringr)
 
 theme_set(theme_bw(base_size = 15))
 
@@ -54,7 +53,7 @@ We can download the data from <`r mlo_url`>. We can download the file and save
 it to the local computer using the R function `download.file`
 
 ```{r download_mlo_data, include=TRUE, message=FALSE}
-mlo_url = "http://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv"
+mlo_url <- 'https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv'
 download.file(mlo_url, '_data/mlo_data.csv')
 ```
 
@@ -211,7 +210,7 @@ to indicate missing values (`NA` means "not available").
 mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
                                       fill = NA, align = "center")) %>%
   ggplot(aes(x = date)) + 
-  geom_line(aes(y = co2), color = "dark blue") +
+  geom_line(aes(y = co2), color = "darkblue") +
   geom_line(aes(y = annual), color = "black", size = 2) +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
        title = "Measured and Seasonally Adjusted CO2")
@@ -226,7 +225,7 @@ mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
   ggplot(aes(x = date)) + 
   geom_line(aes(y = co2, color = "Raw")) +
   geom_line(aes(y = annual, color = "12-month average"), size = 2) +
-  scale_color_manual(values = c("Raw" = "dark blue", "12-month average" = "black"),
+  scale_color_manual(values = c("Raw" = "darkblue", "12-month average" = "black"),
                      name = "Smoothing") +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
        title = "Measured and Seasonally Adjusted CO2")
@@ -529,8 +528,8 @@ and a thick dark blue line for the ten-year rolling average.
 #   ggplot(aes( ... )) + # Put code here to map variables to aesthetics
 #   geom_line(aes(y = anomaly), alpha = 0.3, size = 0.1) + # plot a thin blue line 
 #                                                          # with the un-smoothed anomaly
-#   geom_line(...) + # Now add a medium "dark green" line for the one-year smoothed data
-#   geom_line(...) + # And a thick "dark blue" line for the ten-year smoothed data
+#   geom_line(...) + # Now add a medium "darkgreen" line for the one-year smoothed data
+#   geom_line(...) + # And a thick "darkblue" line for the ten-year smoothed data
 #   labs( ...) + # Label your axes
 #   ... # add any other plot specifications you need.
 ```
@@ -645,7 +644,7 @@ help us compare before and after 1998.
 # ggplot(giss_annual, aes(x = date, y)) +
 #   geom_line(size = 1) +
 #   geom_point(aes(color = year >= 1998), size = 1) +
-#   scale_color_manual(values = c(TRUE = "dark red", FALSE = "dark blue"),
+#   scale_color_manual(values = c(TRUE = "darkred", FALSE = "darkblue"),
 #                      guide = "none") + # color "before" points dark blue, 
 #                                        # "after" points dark red
 #                                        # don't use a legend
@@ -700,7 +699,7 @@ Now let's use ggplot to plot `giss_combined`:
     * Set the `size` of the lines to 1
     * Set the `size` of the points to 2
 * Use the `scale_color_manual` function to set the color of
-  "Before" to "dark blue" and "After" to "dark red"
+  "Before" to "darkblue" and "After" to "darkred"
 * Use `geom_smooth(data = giss_before, method="lm", 
   color = "blue", fill = "blue", alpha = 0.2, fullrange = TRUE)` 
   to show a linear trend that is fit just to the `giss_before` data.
