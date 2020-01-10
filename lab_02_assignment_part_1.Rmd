@@ -1,13 +1,14 @@
 ---
-title: "Lab #2 Assignment, Part 1:"
-subtitle: "Energy Balance and Layer Models of the Atmosphere"
+title: 'Lab #2 Assignment, Part 1:'
 author: "Put your name here"
 date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
-fontfamily: "newtxtext,newtxmath"
-fontsize: "12pt"
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
+fontsize: 12pt
+subtitle: Energy Balance and Layer Models of the Atmosphere
+fontfamily: mathptmx
 ---
 "```{r setup, include=FALSE}
 # This section sets up some options on knitr for processing the RMarkdown file
