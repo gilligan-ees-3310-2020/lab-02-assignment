@@ -46,7 +46,9 @@ spelling errors that will mess up the RMarkdown formatting.
 
 **Remember that to turn in the assignment you need to:**
 
-1. Successfully knit it into a PDF or a Word document.
+1. Successfully knit `Lab_02_assignment_part_2.Rmd` into a PDF or Word file.
+   If you choose to do Part 1 in RMarkdown instead of on paper, 
+   also knit `Lab_02_assignment_part_2.Rmd`.
 2. Commit the results to your local git repository on your computer.
 3. Push your local repository to GitHub.
 
