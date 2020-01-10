@@ -46,9 +46,19 @@ spelling errors that will mess up the RMarkdown formatting.
 
 **Remember that to turn in the assignment you need to:**
 
-1. Successfully knit `Lab_02_assignment_part_2.Rmd` into a PDF or Word file.
-   If you choose to do Part 1 in RMarkdown instead of on paper, 
-   also knit `Lab_02_assignment_part_2.Rmd`.
-2. Commit the results to your local git repository on your computer.
-3. Push your local repository to GitHub.
+1. Successfully **knit** `Lab_02_assignment_part_2.Rmd` into a `.pdf` or 
+   Word (`.docx`) file. 
+   
+     If you choose to do Part 1 in RMarkdown instead 
+     of on paper, also knit `Lab_02_assignment_part_1.Rmd`. Otherwise you will
+     turn in Part 1 on paper at the beginning of class on Friday Jan. 24.
+2. **Commit** your `.Rmd` (rmarkdown) document **and** the `.pdf` or `.docx` 
+   file to your local git repository on your computer.
+3. **Push** your local repository to GitHub, so Ms. Best and Prof. Gilligan 
+   can see your final results.
+
+**The last version of your work that you have pushed by the deadline is what will be graded.**
+You will lose a lot of points if there is not a `.pdf` or `.docx` file with results.
+
+As long as there is a file with results, we will be generous with partial credit.
 
