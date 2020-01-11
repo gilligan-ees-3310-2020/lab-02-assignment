@@ -4,6 +4,8 @@
 
 There are two parts to this assignment:
 
+## Part 1:
+
 One is more like a homework exercise in which you will work some problems from
 _Global Warming: Understanding the Forecast_ on layer models of the greenhouse
 effect. You have the choice to do this either the traditional way, using paper,
@@ -14,12 +16,18 @@ calculations in R and fill in the answers in the template using RMarkdown.
 It is your choice which way you want to do the homework and both ways will be
 graded the same.
 
+## Part 2:
+
 The second part of the assignment, uses the RMarkdown template, 
 `Lab_02_assignment_part_2.Rmd`, which has exercises
 for downloading climate data from the internet and using various tools from the
 `tidyverse` package to manipulate the data, analyze it, and plot it.
 We will spend most of lab working through these exercises, and you will finish
 it at home.
+
+This repository includes both printed instructions 
+(`Lab_02_assignment_part_2.pdf`) and a version that you can read online on
+GitHub ([`Lab_02_assignment_part_2.pdf`](blob/master/Lab_02_assignment_part_2.Rmd)).
 
 Because the Martin Luther King holiday falls on Monday Jan. 20, the assignment
 will be due by the start of class on Friday, Jan. 24, which should give you
