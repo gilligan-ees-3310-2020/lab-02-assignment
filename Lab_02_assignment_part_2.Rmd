@@ -2,11 +2,15 @@
 title: 'EES 3310/5310 Lab #2 Assignment, Part 2'
 author: "put your name here"
 date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
-fontfamily: "newtxtext,newtxmath"
+fontfamily: "mathptmx"
 fontsize: "12pt"
 output:
-  html_document: default
-  pdf_document: default
+  html_document: 
+    toc: true
+  pdf_document:
+    toc: true
+  github_document:
+    toc: true
 subtitle: Exercises in Data Manipulation
 ---
 
@@ -21,13 +25,15 @@ data_dir = "_data"
 script_dir = "_scripts"
 
 library(pacman)
+p_load(tidyverse, zoo)
 
 theme_set(theme_bw(base_size = 15))
 
 source('_scripts/utils.R', chdir = T)
 source('_scripts/modtran.R', chdir = T)
 
-mlo_url = "http://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv"
+mlo_url = str_c("https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/",
+                "in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv")
 
 giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv"
 
@@ -36,6 +42,19 @@ if (!dir.exists('_data')) dir.create('_data')
 ```
 # Instructions
 
+This exercise starts with a worked example that shows how to download 
+measurements of carbon dioxide from the laboratory on Mauna Loa, Hawaii,
+that was started by C. David Keeling in 1958, analyze the data, and 
+make plots and tables to show the results of your analysis.
+
+After studying the worked example, you will do further analysis and plotting
+using both the CO~2~ data from Mauna Loa and also global temperature 
+measurements that you will download from NASA's Goddard Institute for Space 
+Studies.
+
+The section "Exercises" has instructions about what to do and places where you 
+will fill in R code, following the instructions, in order to perform these
+analysis.
 
 # Worked Example
 
@@ -46,14 +65,13 @@ Hawaii to make continuous measurements of atmospheric carbon dioxide. The
 observatory has been running ever since, and has the longest record of direct 
 measurements of atmospheric carbon dioxide levels. The location was chosen 
 because the winds blow over thousands of miles of open ocean before reaching
-Mauna Loa, and this means the CO~2~ measurements are very pure and uncontaminated
-by any local sources of pollution.
+Mauna Loa, and this means the CO~2~ measurements are very pure and 
+uncontaminated by any local sources of pollution.
 
 We can download the data from <`r mlo_url`>. We can download the file and save 
 it to the local computer using the R function `download.file`
 
 ```{r download_mlo_data, include=TRUE, message=FALSE}
-mlo_url <- 'https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv'
 download.file(mlo_url, '_data/mlo_data.csv')
 ```
 
@@ -75,10 +93,11 @@ and lines 55--57 of the data file are column headings that are split across
 multiple rows, so R will get confused if we tell it to use those rows as column 
 names.
 
-Thus, we will tell `read_csv` to read this data file, but skip the first 57 lines.
-We will also tell it not to look for column names in the data file, so we will
-supply the column names, and we will tell it that whenever it sees `-99.99`,
-it should interpret that as indicating a missing value, rather than a measurement.
+Thus, we will tell `read_csv` to read this data file, but skip the first 57 
+lines. We will also tell it not to look for column names in the data file, 
+so we will supply the column names, and we will tell it that whenever it sees 
+`-99.99`, it should interpret that as indicating a missing value, rather than 
+a measurement.
 
 Finally, R can guess what kinds of data each column contains, but for this file,
 things work a bit more smoothly if we provide this information explicitly.
@@ -95,14 +114,15 @@ fractional parts), `n` for an unspecified number,
 mlo_data = read_csv('_data/mlo_data.csv', 
                     skip = 57,  # skip the first 57 rows
                     col_names = c('year', 'month', 'date.excel', 'date',
-                                   'co2.raw', 'co2.raw.seas', 
-                                   'co2.fit', 'co2.fit.seas',
-                                   'co2.filled', 'co2.filled.seas'),
-                     col_types = 'iiiddddddd', # the first three columns 
-                                               # are integers and the 
-                                               # next 7 are real numbers
-                     na = '-99.99' # interpret -99.99 as a missing value
-                    )
+                                  'co2.raw', 'co2.raw.seas', 
+                                  'co2.fit', 'co2.fit.seas',
+                                  'co2.filled', 'co2.filled.seas'),
+                    col_types = 'iiiddddddd', 
+                    # ^^^ the first three columns are integers and the  next 
+                    # 7 are real numbers
+                    na = '-99.99' 
+                    # ^^^ interpret -99.99 as a missing value
+)
 ```
 
 Let's look at the first few rows of the data:
@@ -113,13 +133,6 @@ Here is how it looks in R:
 head(mlo_data)
 ```
 
-And here is how we can use the `kable` function to format the data
-nicely as a table in an RMarkdown document:
-
-```{r show_data, include=TRUE, results = "asis"}
-head(mlo_data) %>% knitr::kable()
-```
-
 There are six different columns for the CO~2~ measurements: 
 
 * `co2.raw` is the 
@@ -127,7 +140,8 @@ There are six different columns for the CO~2~ measurements:
   there are `NA` values for January and February. In addition, there are missing
   values for some months when the instrument was not working well.
 
-* `co2.fit` is a smoothed version of the data, which we will not use in this lab.
+* `co2.fit` is a smoothed version of the data, which we will not use in this 
+  lab.
 
 * `co2.filled` is the same as `co2.raw`, except that where there are missing
   values in the middle of the data, they have been filled in with interpolated
@@ -137,9 +151,9 @@ For each of these three data series, there is also a _seasonally adjusted_
 version, which attempts to remove the effects of seasonal variation in order
 to make it easier to observe the trends.
 
-For this lab, we will focus on the `co2.filled` data series. To keep things simple,
-we can use the `select` function from `tidyverse` to keep only certain columns
-in the tibble and get rid of the ones we don't want.
+For this lab, we will focus on the `co2.filled` data series. To keep things 
+simple, we can use the `select` function from `tidyverse` to keep only certain 
+columns in the tibble and get rid of the ones we don't want.
 
 ```{r simplify_mlo_data, include = TRUE}
 mlo_simple = mlo_data %>% select(year, month, date, co2 = co2.filled)
@@ -150,20 +164,30 @@ head(mlo_simple)
 Note how we renamed the `co2.filled` column to just plain `co2` in the select
 function.
 
+We can also use the `kable()` function to format the data
+nicely as a table in an RMarkdown document:
+
+```{r show_data, include=TRUE, results = "asis"}
+head(mlo_simple) %>% 
+  knitr::kable(col.names = c(year = "Year", month = "Month", date = "Date",
+                             co2 = "CO~2~ (ppm)"),
+               caption = "A table of monthly CO~2~ measurements from Mauna Loa.")
+```
+
+
+
 Now, let's plot this data:
 
-```{r plot_mlo, include = TRUE, warning = FALSE, fig.show = "hold"}
-ggplot(mlo_simple, 
-       aes(x = date, y = co2)) + # This line specifies the data to plot 
-                                 # and the aesthetics that define which 
-                                 # variables to  use for the x and y 
-                                 # axes.
-  geom_line() +   # This line says to plot lines between the points
+```{r plot_mlo, include = TRUE, warning = FALSE, fig.show = "hold", fig.cap="Monthly CO~2~ measurements from Mauna Loa."}
+ggplot(mlo_simple, aes(x = date, y = co2)) + 
+  # ^^^ The ggplot command specifies which data to plot and the aesthetics that 
+  # define which variables to  use for the x and y axes.
+  geom_line() +   
+  # ^^^ The geom_line() command says to plot lines connnecting the data points
   labs(x = "Year", y = "CO2 concentration (ppm)",
        title = "Measured CO2 from Mauna Loa Observatory")
-  # ^^^ The previous line gives the names of the axes and the title
-  # for the plot.
-
+  # ^^^ The labs() command tells ggplot what names to use in labeling the axes 
+  # and the title for the plot.
 
   # Earlier in this .Rmd file, I called set_theme(theme_bw(base_size = 15)) 
   # to set the default plot style. If you call ggplot() without this,
@@ -174,6 +198,13 @@ ggplot(mlo_simple,
   # apply a specific style to an individual plot.
 ```
 
+I created a caption for the figure caption by adding 
+the following specification to the header of the R code chunk in the RMarkdown 
+document:
+```
+fig.cap="Monthly CO~2~ measurements from Mauna Loa."
+```
+
 Notice the seasonal variation in CO~2~. Every year, there is a large cycle of
 CO~2~, but underneath is a gradual and steady increase from year to year.
 If we wanted to look at the trend without the seasonal variation, we could use
@@ -181,10 +212,10 @@ the `co2.filled.seas` column of the original tibble, but instead, let's look at
 how we might estimate this ourselves.
 
 The seasonal cycle is 12 months long and it repeats every year. This means that
-if we average the values in our table over a whole year, this cycle should average
-out. We can do this by creating a new column `annual` where every row represents
-the average over a year centered at that row (technically, all the months from
-5 months before through six months after that date).
+if we average the values in our table over a whole year, this cycle should 
+average out. We can do this by creating a new column `annual` where every row 
+represents the average over a year centered at that row (technically, all the 
+months from 5 months before through six months after that date).
 
 To do this, we use the function `rollapply` from the `zoo` package, as shown 
 below. The `rollapply` function allows you to take a series
@@ -206,12 +237,12 @@ and points at the end of the series that don't have six months after them.
 `fill = NA` means to set those points to `NA`, which is a special value R uses 
 to indicate missing values (`NA` means "not available").
 
-```{r plot_mlo_annual, include = TRUE, warning = FALSE}
+```{r plot_mlo_annual, include = TRUE, warning = FALSE, fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa."}
 mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
                                       fill = NA, align = "center")) %>%
   ggplot(aes(x = date)) + 
-  geom_line(aes(y = co2), color = "darkblue") +
-  geom_line(aes(y = annual), color = "black", size = 2) +
+  geom_line(aes(y = co2), color = "darkblue", size = 0.1) +
+  geom_line(aes(y = annual), color = "black", size = 0.5) +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
        title = "Measured and Seasonally Adjusted CO2")
 ```
@@ -219,13 +250,14 @@ mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
 But wait: we might want a legend to tell the reader what each colored line 
 represents. We can create new aesthetics for the graph mapping to do this:
 
-```{r plot_mlo_annual_2, include = TRUE, warning=FALSE}
+```{r plot_mlo_annual_2, include = TRUE, warning=FALSE, , fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa, with a legend identifying the different lines."}
 mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
                                       fill = NA, align = "center")) %>%
   ggplot(aes(x = date)) + 
-  geom_line(aes(y = co2, color = "Raw")) +
-  geom_line(aes(y = annual, color = "12-month average"), size = 2) +
-  scale_color_manual(values = c("Raw" = "darkblue", "12-month average" = "black"),
+  geom_line(aes(y = co2, color = "Raw"), size = 0.1) +
+  geom_line(aes(y = annual, color = "12-month average"), size = 0.5) +
+  scale_color_manual(values = c("Raw" = "darkblue", 
+                                "12-month average" = "black"),
                      name = "Smoothing") +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
        title = "Measured and Seasonally Adjusted CO2")
@@ -258,7 +290,7 @@ with an uncertainty of plus or minus
 
 We can also plot a linear trend together with the data:
 
-```{r plot_mlo_with_fitted_trend, include = TRUE, warning=FALSE}
+```{r plot_mlo_with_fitted_trend, include = TRUE, warning=FALSE, fig.cap="Trend in atmospheric CO~2~."}
 mlo_simple %>% 
   ggplot(aes(x = date, y = co2)) + 
   geom_line() +
@@ -341,7 +373,7 @@ the resulting tibble to a variable `giss_temp`
 ```{r read_giss_temp, include=TRUE}
 # Put your R code here to call read_csv and read "global_temp_land_sea.csv"
 
-# show the first 5 lines of giss_temp
+# Then, show the first 5 lines of giss_temp:
 # head(giss_temp, 5)
 ```
 
@@ -353,18 +385,18 @@ averages for Winter (December, January, and February),
 Spring (March, April, and May), Summer (June, July, and August), and Fall 
 (September, October, and November).
 
-The temperatures are recorded not as the thermometer reading, but as _anomalies_.
-If we want to compare how temperatures are changing in different seasons and at
-different parts of the world, raw temperature measurements are hard to work with
-because summer is hotter than winter and Texas is hotter than Alaska, so it 
-becomes difficult to compare temperatures in August to temperatures in January,
-or temperatures in Texas to temperatures in Alaska
+The temperatures are recorded not as the thermometer reading, but as 
+_anomalies_. If we want to compare how temperatures are changing in different 
+seasons and at different parts of the world, raw temperature measurements are 
+hard to work with because summer is hotter than winter and Texas is hotter than 
+Alaska, so it becomes difficult to compare temperatures in August to 
+temperatures in January, or temperatures in Texas to temperatures in Alaska
 and tell whether there was warming.
 
 To make it easier and more reliable to compare temperatures at different times
-and places, we define anomalies: The temperature anomaly is the difference between
-the temperature recorded at a certain location during a certain month and
-a baseline reference value, which is the average temperature for that month
+and places, we define anomalies: The temperature anomaly is the difference 
+between the temperature recorded at a certain location during a certain month 
+and a baseline reference value, which is the average temperature for that month
 and location over a period that is typically 30 years.
 
 The GISS temperature data uses a baseline reference period of 1951--1980, so 
@@ -386,10 +418,11 @@ Save the result in a variable called `giss_monthly`
 # put your R code here
 ```
 
-Next, it will be difficult to plot all of the data if the months are organized as
-columns. What we want is to transform the data tibble into one with three columns:
-"year", "month", and "anomaly". We can do this easily using the `gather` function
-from the `tidyverse` package: `gather(df, key = month, value = anomaly, -Year)`
+Next, it will be difficult to plot all of the data if the months are organized 
+as columns. What we want is to transform the data tibble into one with three 
+columns: "year", "month", and "anomaly". We can do this easily using the 
+`gather` function from the `tidyverse` package: 
+`gather(df, key = month, value = anomaly, -Year)`
 or `df %>% gather(key = month, value = anomaly, -Year)` will gather all of the 
 columns except `Year` (the minus sign in `select` or `gather` means to include
 all columns except the ones indicated with a minus sign) and:
@@ -404,9 +437,8 @@ which lists the quarterly approval ratings for U.S. presidents from 1945--1974:
 
 ```{r gather_example_prep, include=TRUE}
 
-df = presidents@.Data %>% matrix(ncol=4, byrow = TRUE) %>%
+df = matrix(presidents, ncol=4, byrow = TRUE) %>%
   as_tibble() %>% set_names(paste0("Q", 1:4)) %>% mutate(year = 1944 + seq(n()))
-
 
 print("First 10 rows of df are")
 print(head(df, 10))
@@ -422,17 +454,21 @@ and one column to indicate the approval rating.
 We do this with the `gather` function from the `tidyverse` package.
 
 ```{ r gather_example}
-dfg = df %>% gather(key = quarter, # create a column called "quarter" to store
-                                    # the names of the columns that are gathered
-                     value = approval, # create a column called "approval" to
-                                       # store the values from those columns
-                                       # (i.e., the approval ratings in that quarter)
-                     -year # the minus sign means gather all columns EXCEPT year.
-                     ) %>%
-  arrange(year, quarter) # sort the rows of the resulting tibble to put
-                         # the years in ascending order, from 1945 to 1971
-                         # and within each year, sort the quarters from Q1
-                         # to Q4
+dfg = df %>% gather(key = quarter, value = approval, -year) %>%
+  arrange(year, quarter) 
+# the gather command gathers the data into tidy columns:
+# "key = quarter" tells gather to create a column called "quarter" and store 
+# the names of the columns that are gathered there.
+# "value = approval" tells gather to create a column called "approval" and
+# store the values from the columns there.
+# "-year" tells gather NOT to gather the column "year".
+# So the approval ratings from the second quarter of 1960 will be stored in 
+# a row where the column year contains 1960, quarter contains "Q2", and 
+# approval contains the approval rating.
+#
+# the arrange command sorts the rows of the resulting tibble to put 
+# the years in ascending order, from 1945 to 1971, and within each year, 
+# sort the quarters in alphabetical order from Q1 to Q4
 
 head(dfg) # print the first few rows of the tibble.
 ```
@@ -458,8 +494,9 @@ that corresponded to the month, so June 1960 was 1960.4548?
 Here is a trick that lets us do the same for the `giss_g` data set.
 R has a data type called `factor` that it uses for managing categorical data,
 such as male versus female, Democrat versus Republican, and so on.
-Categorical factors have a textual label, but are silently represented as integer 
-numbers. Normal factors don't have a special order, so R sorts the values alphabetically.
+Categorical factors have a textual label, but are silently represented as 
+integer numbers. Normal factors don't have a special order, so R sorts the 
+values alphabetically.
 However, there is another kind of factor called an ordered factor, which allows
 us to specify the order of the values.
 
@@ -484,10 +521,11 @@ In the code above, `ordered(month, levels = month.abb)` converts the variable
 to an ordered factor that associates a number with each month name, such that
 'Jan' = 1 and 'Dec' = 12.
 
-Then we create a new column called `date` to get the fractional year corresponding
-to that month. We have to explicitly convert the ordered factor into a number
-using the function `as.integer()`, and we subtract 0.5 because the time that
-corresponds to the average temperature for the month is the middle of the month.
+Then we create a new column called `date` to get the fractional year 
+corresponding to that month. We have to explicitly convert the ordered factor 
+into a number using the function `as.integer()`, and we subtract 0.5 because 
+the time that corresponds to the average temperature for the month is the 
+middle of the month.
 
 Below, use code similar to what I put above to add a new `date` column to
 `giss_g`.
@@ -500,9 +538,12 @@ Now plot the monthly temperature anomalies versus date:
 
 ```{r plot_giss, include=TRUE, warning = FALSE}
 # put your R code here
-# ggplot( ) + # specify the data and the mappings of variables to plot aesthetics
-# geom_xxx() + # put the geometries (lines, points, etc) that you want to plot
-# labs() + # label the axes
+# ggplot( ) + 
+# # specify the data and the mappings of variables to plot aesthetics
+# geom_xxx() + 
+# # put the geometries (lines, points, etc) that you want to plot
+# labs() + 
+# # label the axes
 # ... # put any other characteristics here.
 ```
 
@@ -522,21 +563,27 @@ and a thick dark blue line for the ten-year rolling average.
 ```{r plot_giss_with_smoothing, include=TRUE, warning = FALSE}
 # put your R code here
 # giss_g %>% 
-#   mutate( ... ) %>% # put the code here to add a columns called 
-#                     # "smooth.1" for the one-year smoothed anomaly and
-#                     # "smooth.10" for the ten-year smoothed anomaly
-#   ggplot(aes( ... )) + # Put code here to map variables to aesthetics
-#   geom_line(aes(y = anomaly), alpha = 0.3, size = 0.1) + # plot a thin blue line 
-#                                                          # with the un-smoothed anomaly
-#   geom_line(...) + # Now add a medium "darkgreen" line for the one-year smoothed data
-#   geom_line(...) + # And a thick "darkblue" line for the ten-year smoothed data
+#   mutate( ... ) %>% 
+#   # ^^^ fill in code for "..." in "mutate()" to add a columns called
+#   # "smooth.1" for the one-year smoothed anomaly 
+#   # and "smooth.10" for the ten-year smoothed anomaly.
+#   ggplot(aes( ... )) + 
+#   # ^^^ Then we send the result of mutate to ggplot() where it becomes the 
+#   # data to plot.
+#   # Add code for the aesthetics ("...") to map variables to aesthetics.
+#   geom_line(aes(y = anomaly), alpha = 0.3, size = 0.1) + 
+#   # ^^^ plot a thin blue line with the un-smoothed anomaly
+#   geom_line(...) + 
+#   # ^^^ Now add a medium "darkgreen" line for the one-year smoothed data
+#   geom_line(...) + 
+#   # ^^^ And a thick "darkblue" line for the ten-year smoothed data
 #   labs( ...) + # Label your axes
-#   ... # add any other plot specifications you need.
+#   # ... # add any other plot specifications you need.
 ```
 
-The graph shows that temperature didn't show a steady trend until starting around
-1970, so we want to isolate the data starting in 1970 and fit a linear trend
-to it.
+The graph shows that temperature didn't show a steady trend until starting 
+around 1970, so we want to isolate the data starting in 1970 and fit a linear 
+trend to it.
 
 To select only rows of a tibble that match a condition, we use the function 
 `filter` from the `tidyverse` package:
@@ -585,9 +632,9 @@ In years with strong El Ni&ntilde;os, global temperatures tend to be higher
 and in years with strong La Ni&ntilde;as, global temperatures tend to be lower.
 We will discuss why later in the semester.
 
-The year 1998 had a particularly strong El Ni&ntilde;o, and the year set a record
-for global temperature that was not exceeded for several years. Indeed, compared
-to 1998, it might look as though global warming paused for many years.
+The year 1998 had a particularly strong El Ni&ntilde;o, and the year set a 
+record for global temperature that was not exceeded for several years. Indeed, 
+compared to 1998, it might look as though global warming paused for many years.
 
 We will examine whether this apparent pause has scientific validity.
 
@@ -601,8 +648,8 @@ We also want to select only recent data, so we arbitrarily say we will look at
 temperatures starting in 1979, which gives us 19 years before the 1998 
 El Ni&tilde;o.
 
-We don't have a full year of data for 2017, so we want to discard that because we
-won't get a full year average from it.
+We don't have a full year of data for 2017, so we want to discard that because 
+we won't get a full year average from it.
 
 If we go back to the original `giss_g` data tibble, run the following code:
 
@@ -625,8 +672,8 @@ This code groups the giss data by the year, so that one group will have
 January--December 1979, another will have January--December 1980, and
 so forth.
 
-Then we replace the groups of 12 rows for each year (each row represents one month)
-with a single row that represents the average of those 12 months.
+Then we replace the groups of 12 rows for each year (each row represents one 
+month) with a single row that represents the average of those 12 months.
 
 It is important to tell R to `ungroup` the data after we're done working with
 the groups.
@@ -645,9 +692,9 @@ help us compare before and after 1998.
 #   geom_line(size = 1) +
 #   geom_point(aes(color = year >= 1998), size = 1) +
 #   scale_color_manual(values = c(TRUE = "darkred", FALSE = "darkblue"),
-#                      guide = "none") + # color "before" points dark blue, 
-#                                        # "after" points dark red
-#                                        # don't use a legend
+#                      guide = "none") + 
+#   # ^^^ color "before" points dark blue, "after" points dark red.
+#   # guide = "none" tells ggplot not to show a legend explaining the colors.
 #   labs(x = "Year", y = "Temperature Anomaly")
 ```
 
@@ -717,10 +764,10 @@ to the "before" data. The trend line shows both the best fit for a trend
 light blue shaded area around the line).
 
 If the temperature trend changed after 1998 (e.g., if the warming paused, or if
-it reversed and started cooling) then we would expect the temperature measurements
-after 1998 to fall predominantly below the extrapolated trend line, and our 
-confidence that the trend had changed would depend on the number of points that
-fall below the shaded uncertainty range.
+it reversed and started cooling) then we would expect the temperature 
+measurements after 1998 to fall predominantly below the extrapolated trend line, 
+and our confidence that the trend had changed would depend on the number of 
+points that fall below the shaded uncertainty range.
 
 How many of the red points fall below the trend line?
 
