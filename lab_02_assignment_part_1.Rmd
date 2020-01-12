@@ -3,9 +3,14 @@ title: 'Lab #2 Assignment, Part 1:'
 author: "Put your name here"
 date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
 output:
-  word_document: default
-  pdf_document: default
-  html_document: default
+  html_document:
+    toc: true
+  github_document:
+    toc: true
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
 fontsize: 12pt
 subtitle: Energy Balance and Layer Models of the Atmosphere
 fontfamily: mathptmx

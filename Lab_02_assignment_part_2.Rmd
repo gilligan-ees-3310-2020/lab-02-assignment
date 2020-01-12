@@ -11,6 +11,8 @@ output:
     toc: true
   github_document:
     toc: true
+  word_document:
+    toc: true
 subtitle: Exercises in Data Manipulation
 ---
 
