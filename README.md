@@ -27,7 +27,7 @@ it at home.
 
 This repository includes both printed instructions 
 (`Lab_02_assignment_part_2.pdf`) and a version that you can read online on
-GitHub ([`Lab_02_assignment_part_2.pdf`](blob/master/Lab_02_assignment_part_2.Rmd)).
+GitHub ([`Lab_02_assignment_part_2.md`](blob/master/Lab_02_assignment_part_2.md)).
 
 Because the Martin Luther King holiday falls on Monday Jan. 20, the assignment
 will be due by the start of class on Friday, Jan. 24, which should give you
