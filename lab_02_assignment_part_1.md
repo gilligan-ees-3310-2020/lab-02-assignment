@@ -4,22 +4,25 @@ Put your name here
 Lab: Mon. Jan. 13. Due: Fri. Jan. 24
 
   - [Instructions](#instructions)
+  - [Worked Example for One-Layer
+    Atmosphere](#worked-example-for-one-layer-atmosphere)
   - [Exercises from Chapter 3](#exercises-from-chapter-3)
-      - [Worked Example for One-Layer
-        Atmosphere](#worked-example-for-one-layer-atmosphere)
       - [Exercise 3.1 (Grad. students
         only)](#exercise-3.1-grad.-students-only)
       - [Exercise 3.2](#exercise-3.2)
       - [Exercise 3.3](#exercise-3.3)
 
-"`{r setup, include=FALSE} # This section sets up some options on knitr
-for processing the RMarkdown file knitr::knit_hooks$set(inline =
-function(x) { knitr:::format_sci(x, 'md')}) knitr::opts_chunk$set(echo =
-TRUE)`
-
 # Instructions
 
-Do the exercises from Chapter 3, below. You have a choice:
+This document begins with a worked example to show you an example of
+using RMarkdown to solve a layer-model (the 1-layer model from Chapter 3
+of *Understanding the Forecast*) and then it has exercises from Chapter
+3 for you to do yourself:
+
+  - **All students** do Chapter 3, exercises 2–3.
+  - **Graduate students** should also do Chapter 3, exercise 1.
+
+When you the exercises from Chapter 3. You have a choice:
 
   - You can do the exercises out of the book like regular homework and
     turn them in at the beginning of class on Friday, Jan. 24.
@@ -51,19 +54,7 @@ Do the exercises from Chapter 3, below. You have a choice:
 It is your choice how to do them. Either way is acceptable and will get
 equal credit.
 
-# Exercises from Chapter 3
-
-  - **All students** do Chapter 3, exercises 2–3.
-  - **Graduate students** should also do Chapter 3, exercise 1.
-
-For the exercises, use the following numbers:
-
-  - I<sub>solar</sub> = 1350 W/m<sup>2</sup>
-  - \(\sigma = 5.67 \times 10^{-8}\)
-  - \(\alpha = 0.30\)
-  - \(\varepsilon = 1.0\)
-
-<!-- end list -->
+# Worked Example for One-Layer Atmosphere
 
 ``` r
 I_solar = 1350
@@ -71,8 +62,6 @@ alpha = 0.30
 sigma = 5.67E-8
 epsilon = 1
 ```
-
-## Worked Example for One-Layer Atmosphere
 
 > **A One-Layer Model.**
 
@@ -151,6 +140,18 @@ T_ground = (I_ground / (epsilon * sigma))^0.25
 
 From the algebraic solution, we get T<sub>ground</sub> = 302. K and from
 the R code above, we get T<sub>ground</sub> = 302. K.
+
+# Exercises from Chapter 3
+
+  - **All students** do Chapter 3, exercises 2–3.
+  - **Graduate students** should also do Chapter 3, exercise 1.
+
+For the exercises, use the following numbers:
+
+  - I<sub>solar</sub> = 1350 W/m<sup>2</sup>
+  - \(\sigma = 5.67 \times 10^{-8}\)
+  - \(\alpha = 0.30\)
+  - \(\varepsilon = 1.0\)
 
 ## Exercise 3.1 (Grad. students only)
 
