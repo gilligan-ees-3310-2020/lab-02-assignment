@@ -37,7 +37,7 @@ source('_scripts/modtran.R', chdir = T)
 mlo_url = str_c("https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/",
                 "in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv")
 
-giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv"
+giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv"
 
 # Create a data directory if one does not exist.
 if (!dir.exists('_data')) dir.create('_data')
