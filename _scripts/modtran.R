@@ -1,14 +1,19 @@
 library(pacman)
-p_load(tidyverse, scales, gtable, grid, stringr, xml2)
+p_load(tidyverse, scales, xml2)
 
 ssource <- function(filename, chdir = F) {
   if(!file.exists(filename)) {
-    if(exists("script_dir")) script_dir = script_dir
-    else if (exists("script.dir")) script_dir = script.dir
-    else if (dir.exists("_scripts")) script_dir = "_scripts"
-    else if (dir.exists("_scripts")) script_dir = "scripts"
+    if(exists("script_dir", envir = globalenv()))
+      script_dir = get("script_dir", envir = globalenv())
+    else if (exists("script.dir", envir = globalenv()))
+      script_dir = get("script.dir", envir = globalenv())
+    else if (dir.exists("_scripts"))
+      script_dir = "_scripts"
+    else if (dir.exists(rprojroot::find_rstudio_root_file("_scripts")))
+      script_dir = ("_scripts")
+    else
+      script_dir = "."
     if(dir.exists(script_dir)) filename = file.path(script_dir, filename)
-    else stop("Could not find script directory.")
   }
   source(filename, chdir = chdir,
          local = FALSE, echo=FALSE, print.eval = FALSE, verbose = FALSE)
@@ -63,13 +68,16 @@ atmos_spec <- tibble(
   key = c("tropical",
           "midlatitude summer", "midlatitude winter",
           "subarctic summer", "subarctic winter",
-          "standard"
+          "standard", "standard atmosphere",
+          "us standard atmosphere", "u s standard atmosphere",
+          "1976 standard atmosphere",
+          "1976 us standard atmosphere", "1976 u s standard atmosphere"
   ),
-  value = c(1, 2, 3, 4, 5, 6),
+  value = c(1, 2, 3, 4, 5, rep(6, 7)),
   descr = c("Tropical",
             "Midlatitude Summer", "Midlatitude Winter",
             "Subarctic Summer", "Subarctic Winter",
-            "1976 U.S. Standard Atmosphere"
+            rep("1976 U.S. Standard Atmosphere", 7)
   )
 )
 
@@ -143,6 +151,10 @@ run_modtran <- function(filename = NULL,
                 "atmosphere", "clouds",
                 "altitude_km", "looking")) %>%
     map(~as.character(.x[1])) %>%
+    modify_at("atmosphere", ~str_to_lower(.x) %>%
+                str_replace_all(c("[^a-z0-9]+" = " ", "  +" = " ")) %>%
+                str_trim()
+    ) %>%
     simplify()
   for(k in c('h2o_fixed', 'atmosphere', 'clouds', 'looking')) {
     # message("Looking up ", k)
@@ -165,12 +177,22 @@ run_modtran <- function(filename = NULL,
   if (! is.null(filename)) {
     write(body, filename)
   }
-  invisible(body)
+  Sys.sleep(5)
+
+
+  output <- str_c(body, collapse = "\n") %>% read_modtran(text = .)
+  invisible(output)
 }
 
 
-read_modtran_profile <- function(filename, text = NULL) {
-  if (missing(filename) && ! is.null(text)) {
+read_modtran_profile <- function(filename = NULL, text = NULL) {
+  if (! is.null(filename) && ! is.na(filename)) {
+    if (isTRUE(any(str_detect(filename, "\n"))) || length(filename) > 1) {
+      text = filename
+      filename = NULL
+    }
+  }
+  if (is.null(filename) && ! is.null(text)) {
     lines <- text %>% str_split("\n") %>% unlist()
   } else {
     f <- file(filename,"r")
@@ -178,18 +200,19 @@ read_modtran_profile <- function(filename, text = NULL) {
     close(f)
   }
   im <- str_detect(lines, "^ +ATMOSPHERIC PROFILES") %>% which()
-  header <- im[[1]] + 2
-  start <- im[[1]] + 5
-  end <- im[[2]] - 2
+  header <- im[[3]] + 2
+  start <- header + 2
+  end <- im[[4]] - 2
   col_names <- lines[[header]] %>% str_trim() %>% str_split(" +") %>% unlist() %>%
     str_replace_all("([^a-zA-Z0-9_]+)", ".") %>%
     str_replace_all(c('^\\.' = '', '\\.$' = ''))
   dups <- duplicated(col_names) %>% which()
   col_names[dups] <- col_names[dups] %>% str_c(seq_along(dups), sep = ".")
   profile <- lines[start:end] %>% str_trim() %>% str_c(collapse = "\n") %>%
-    read_table2(col_names=col_names[1:10])
-  profile <- profile[,2:4]
-  names(profile) <- col_names[2:4]
+    read_table2(col_names=col_names)
+  profile <- profile %>% select(Z, P, T, H2O, O3, CO2, CH4) %>%
+    # convert from MBAR to ppmv
+    mutate(H2O = H2O * 1E6 / P)
   profile
 }
 
@@ -197,14 +220,25 @@ extract_tropopause <- function(profile) {
   profile %>% filter(T <= lead(T)) %>% top_n(-1, Z)
 }
 
-read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
-  if (missing(filename) && ! is.null(text)) {
+read_modtran <- function(filename = NULL, text = NULL, scale_factor = 3.14E+4) {
+  if (! is.null(filename) && ! is.na(filename)) {
+    if (isTRUE(any(str_detect(filename, "\n"))) || length(filename) > 1) {
+      text = filename
+      filename = NULL
+    }
+  }
+  if (is.null(filename) && ! is.null(text)) {
     lines <- text %>% str_split("\n") %>% unlist()
   } else {
     f <- file(filename,"r")
     lines <- readLines(f,warn=F)
     close(f)
   }
+  atmos_index <- str_detect(lines, "ATMOSPHERIC MODEL") %>% which()
+  atmos_spec <- str_match(lines[atmos_index + 1],
+                          "^ +TEMPERATURE += +[0-9]+ +(?<atmos>[A-Za-z0-9].+)$") %>%
+    { .[1,2] } %>% str_trim()
+
   profile <- read_modtran_profile(text = lines)
   tropopause <- extract_tropopause(profile)
   t_ground = profile$T[1]
@@ -218,10 +252,8 @@ read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
     which()
   target <- lines[im[1]]
   x <- target %>% str_trim() %>% str_split(" +") %>% unlist()
-  n_names <- length(x) / 2
-  x <- x[seq(n_names + 1, 2 * n_names)] %>%
-    map_dbl(~as.numeric(.x)) %>% set_names(x[1:n_names])
-  xxco2 <- x['co2mx']
+  x <- x[8:14] %>% map_dbl(~as.numeric(.x)) %>% set_names(x[1:7])
+  co2 <- x['co2mx']
   ch4 <- x['ch4rat'] * 1.7
   im <- str_detect(lines, fixed("0 SLANT PATH TO SPACE")) %>% which()
   target <-lines[[im + 1]]
@@ -254,10 +286,13 @@ read_modtran <- function(filename, text = NULL, scale_factor = 3.14E+4) {
                  profile = profile,
                  h_tropo = tropopause$Z,
                  t_tropo = tropopause$T,
-                 t_ground = t_ground))
+                 t_ground = t_ground,
+                 atmosphere = atmos_spec))
 }
 
-plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
+plot_modtran <- function(filename = NULL, text = NULL,
+                         modtran_data = NULL,
+                         descr = NULL, i_out_ref = NA,
                          last_i_out = NA, delta_t = NA,
                          tmin=220, tmax = 300,
                          nc = 5, max_color = 0.8,
@@ -267,8 +302,15 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                          annotate_size = 5, text_size = 10,
                          legend_text_size = 10, legend_size = 0.2,
                          line_scale = 1, direction = "out",
-                         text = NULL) {
-  x  <- read_modtran(filename = filename, text = text)
+                         lambda = NULL) {
+  if (! is.null(modtran_data)) {
+    x <- modtran_data
+  } else if (! is.null(filename) && is.list(filename) &&
+             "spectrum" %in% names(filename)) {
+    x <- filename
+  } else {
+    x  <- read_modtran(filename, text)
+  }
   spectrum <- x$spectrum
   alt <- x$alt
   co2 <- x$co2
@@ -294,7 +336,7 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
   tlist <- tmin + dt * seq(0,nc-1)
   hues <- c(hsv(max_color - (dh * seq(0, nc - 1 )), 0.9, 0.8), "black")
 
-  thermal <- tibble(k = spectrum$k, t = tmin)
+  thermal <- data.frame(k = spectrum$k, t = tmin)
   thermal <- bind_rows(thermal, map(seq(tmin + dt, tmax, dt),
                                     ~tibble(k = spectrum$k, t = .x)))
   thermal <- thermal %>%
@@ -303,7 +345,9 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
              ordered(., levels = c("MODTRAN", sort(unique(.), decreasing = TRUE)))
     ) %>% na.omit() %>% filter(between(k, k_limits[1], k_limits[2]))
 
-  lambda = c(1, 2, 2.5, 3, 3.5, 4, 5:10, 12, 14, 17, 20, 25, 30, 35, 40, 50, 100)
+  if (is.null(lambda)) {
+    lambda = c(1, 2, 2.5, 3, 3.5, 4, 5:10, 12, 14, 17, 20, 25, 30, 35, 40, 50, 100)
+  }
 
   spectrum <- spectrum %>% select(k, tk) %>% na.omit() %>%
     filter(between(k, k_limits[1], k_limits[2]))
@@ -361,7 +405,7 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
           panel.grid.minor=element_line(size=0.1,color="gray95"),
           legend.key.size = unit(legend_size,"npc"),
           legend.text = element_text(size=legend_text_size),
-          legend.position = c(1,1), legend.justification = c(1,1),
+          legend.position = c(0.99,0.99), legend.justification = c(1,1),
           legend.key.height = unit(1, "lines"), legend.key.width = unit(2, "lines"),
           legend.background = element_rect(color = "black", fill = "white"))
 

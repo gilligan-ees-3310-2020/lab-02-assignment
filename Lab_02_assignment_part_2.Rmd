@@ -2,15 +2,16 @@
 title: 'EES 3310/5310 Lab #2 Assignment, Part 2'
 author: "put your name here"
 date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
-fontfamily: "mathptmx"
 fontsize: "12pt"
 output:
+  github_document:
+    toc: true
   html_document: 
     toc: true
   pdf_document:
     toc: true
-  github_document:
-    toc: true
+    includes:
+      in-header: "ees3310.sty"
   word_document:
     toc: true
 subtitle: Exercises in Data Manipulation
@@ -20,27 +21,41 @@ subtitle: Exercises in Data Manipulation
 knitr::knit_hooks$set(inline = function(x) { knitr:::format_sci(x, 'md')})
 knitr::opts_chunk$set(echo = TRUE)
 
+options(dplyr.summarise.inform = FALSE)
+
 # This section loads necessary R libraries and sources scripts that define 
 # useful functions format_md.
 # 
 data_dir = "_data"
 script_dir = "_scripts"
 
+if (! require("pacman")) {
+  stop(paste0('Before you can knit this file, you need to install the ',
+              '"pacman" package.\n',
+              'In RStudio, click on the "Packages" tab and click "Install",\n',
+              'Then type "pacman" in the "Packages" box and click on ',
+              '"Install".\n',
+              'After the package installs, you should be good to go.'))
+}
+
 library(pacman)
-p_load(tidyverse, zoo)
+p_load(tidyverse, slider)
 
 theme_set(theme_bw(base_size = 15))
 
-source('_scripts/utils.R', chdir = T)
-source('_scripts/modtran.R', chdir = T)
+data_dir = "_data"
+script_dir = "_scripts"
+
+# Create a data directory if one does not exist.
+if (!dir.exists(data_dir)) dir.create(data_dir)
+
+source(file.path(script_dir, 'utils.R'), chdir = T)
+source(file.path(script_dir, 'modtran.R'), chdir = T)
 
 mlo_url = str_c("https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/",
                 "in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv")
 
 giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv"
-
-# Create a data directory if one does not exist.
-if (!dir.exists('_data')) dir.create('_data')
 ```
 # Instructions
 
@@ -164,7 +179,9 @@ head(mlo_simple)
 ```
 
 Note how we renamed the `co2.filled` column to just plain `co2` in the select
-function.
+function. There are some missing measurements from months where the laboratory
+instruments were not working properly. These are indicated by `NA`, meaning
+"not available."
 
 We can also use the `kable()` function to format the data
 nicely as a table in an RMarkdown document:
@@ -219,29 +236,28 @@ average out. We can do this by creating a new column `annual` where every row
 represents the average over a year centered at that row (technically, all the 
 months from 5 months before through six months after that date).
 
-To do this, we use the function `rollapply` from the `zoo` package, as shown 
-below. The `rollapply` function allows you to take a series
+To do this, we use the function `slide_vec` from the `slider` package, as shown 
+below. The `slide_vec` function allows you to take a series
 of data (such as monthly CO~2~ measurements) and at each point, apply a function
 to the data within a "window" that includes a certain number of points 
 before and after the point in question. 
 
-Here, we apply the `mean` function (`FUN = mean`) to take the average, and we 
-define the "window" to be the 12 points centered on the point in question. 
-This means that for each month in our data series, `rollapply` takes the average 
-of the 12 measurements centered on that month (technically, the month, the five 
-months before, and the six months after). You could also specify 
-`align = "left"` to take the 12 months starting with the given month, 
-or `align = "right"` to take the 12 months ending with the given month.
+Here, we apply the `mean` function to take the average, and we 
+define the "window" to be the 12 points roughly centered on the point in 
+question, so for each month in our data series, `slide_vec` takes the average 
+of the 12 measurements roughly centered on that month (technically, the month, 
+the five months before, and the six months after). You could also specify 
+`.before = 0, .after = 11` to take the 12 months starting with the given month, 
+or `.before = 11, .after = 0` to take the 12 months ending with the given month.
 
-We also need to tell `rollapply` what to do with the months at the beginning 
-of the series that don't have five months of data before them 
-and points at the end of the series that don't have six months after them.
-`fill = NA` means to set those points to `NA`, which is a special value R uses 
-to indicate missing values (`NA` means "not available").
+There will be months at the beginning of the series that don't have five months 
+of data before them and points at the end of the series that don't have six 
+months after them. By default `slide_vec` sets those points to `NA`, which is a 
+special value R uses to indicate missing values (`NA` means "not available").
 
 ```{r plot_mlo_annual, include = TRUE, warning = FALSE, fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa."}
-mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
-                                      fill = NA, align = "center")) %>%
+mlo_simple %>% 
+  mutate(annual = slide_vec(co2, mean, .before = 5, .after = 6)) %>%
   ggplot(aes(x = date)) + 
   geom_line(aes(y = co2), color = "darkblue", size = 0.1) +
   geom_line(aes(y = annual), color = "black", size = 0.5) +
@@ -253,8 +269,8 @@ But wait: we might want a legend to tell the reader what each colored line
 represents. We can create new aesthetics for the graph mapping to do this:
 
 ```{r plot_mlo_annual_2, include = TRUE, warning=FALSE, , fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa, with a legend identifying the different lines."}
-mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
-                                      fill = NA, align = "center")) %>%
+mlo_simple %>% 
+  mutate(annual = slide_vec(co2, mean, .before = 5, .after = 6)) %>%
   ggplot(aes(x = date)) + 
   geom_line(aes(y = co2, color = "Raw"), size = 0.1) +
   geom_line(aes(y = annual, color = "12-month average"), size = 0.5) +
@@ -458,6 +474,7 @@ We do this with the `gather` function from the `tidyverse` package.
 ```{ r gather_example}
 dfg = df %>% gather(key = quarter, value = approval, -year) %>%
   arrange(year, quarter) 
+
 # the gather command gathers the data into tidy columns:
 # "key = quarter" tells gather to create a column called "quarter" and store 
 # the names of the columns that are gathered there.
@@ -540,6 +557,12 @@ Now plot the monthly temperature anomalies versus date:
 
 ```{r plot_giss, include=TRUE, warning = FALSE}
 # put your R code here
+# 
+# Here in the comments is an example of the kind of thing you might want to 
+# use, but you will need to fill in some details, such as the data and 
+# aesthetics for ggplot() and which geometries you want to plot (geom_xxx is not
+# a real geometry).
+# 
 # ggplot( ) + 
 # # specify the data and the mappings of variables to plot aesthetics
 # geom_xxx() + 
@@ -550,20 +573,24 @@ Now plot the monthly temperature anomalies versus date:
 ```
 
 That plot probably doesn't look like much, because it's very noisy.
-Use the function `rollapply` from the package `zoo` to create 
+Use the function `slide_vec` from the package `slider` to create 
 new columns in `giss_g` with
-12-month and 10-year (i.e., 120-month) rolling averages of the 
+12-month and 10-year (i.e., 120-month) sliding averages of the 
 anomalies.
 
 Make a new plot in which you plot a thin blue line for the monthly anomaly
 (use `geom_line(aes(y = anomaly), color = "blue", alpha = 0.3, size = 0.1)`;
 alpha is an optional specification for transparency where 0 means invisible
 (completely transparent) and 1 means opaque),
-a medium dark green line for the one-year rolling average,
-and a thick dark blue line for the ten-year rolling average.
+a medium dark green line for the one-year sliding average,
+and a thick dark blue line for the ten-year sliding average.
 
 ```{r plot_giss_with_smoothing, include=TRUE, warning = FALSE}
 # put your R code here
+# 
+# Here is an example of the outline of the kind of code you might want to 
+# use, but you will need to fill in the details to make this code work.
+# 
 # giss_g %>% 
 #   mutate( ... ) %>% 
 #   # ^^^ fill in code for "..." in "mutate()" to add a columns called
@@ -622,8 +649,11 @@ What is the average change in temperature from one year to the next?
 
 ```{r giss_trend, include=TRUE}
 # put your R code here
+# 
 # create giss_recent
+# 
 # fit a linear trend to the data using lm()
+# 
 # print the coefficients of the trend.
 ```
 
@@ -659,6 +689,7 @@ If we go back to the original `giss_g` data tibble, run the following code:
 # When you are ready to run the code below, you can un-comment it in RStudio
 # by highlighting the lines you want to uncomment and pressing 
 # Ctrl + Shift + C on Windows or Cmd + Shift + C on Mac.
+#
 # (You can also comment out code using the same key combination: it works
 #  as a toggle between commented and un-commented).
 #  
@@ -690,6 +721,9 @@ Now plot the data and color the points for 1998 and afterward dark red to
 help us compare before and after 1998.
 
 ```{r plot_recent_giss, include=TRUE, warning = FALSE}
+# Here is more example code that you can uncomment and run after you get the 
+# code in the preceding chunks to run properly.
+# 
 # ggplot(giss_annual, aes(x = date, y)) +
 #   geom_line(size = 1) +
 #   geom_point(aes(color = year >= 1998), size = 1) +
