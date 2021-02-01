@@ -7,15 +7,16 @@ There are two parts to this assignment:
 ## Part 1:
 
 The first part of the assignment, uses the RMarkdown template, 
-`Lab_02_assignment_part_2.Rmd`, which has exercises
+`lab_02_assignment_part_2.Rmd`, which has exercises
 for downloading climate data from the internet and using various tools from the
 `tidyverse` package to manipulate the data, analyze it, and plot it.
 We will spend most of lab working through these exercises, and you will finish
 it at home.
 
 This repository includes both printed instructions 
-(`Lab_02_assignment_part_1.pdf`) and a version that you can read online on
-GitHub ([`Lab_02_assignment_part_1.md`](Lab_02_assignment_part_1.md)).
+([`lab_02_assignment_part_1.pdf`]('lab_02_assignment_part_2.pdf')) 
+and a version that you can read online on
+GitHub ([`lab_02_assignment_part_1.md`](lab_02_assignment_part_1.md)).
 
 The assignment will be due by 9:00 am on Monday, Feb. 8. Please come to 
 Prof. Gilligan or Mr. de Wet's office hours if you need help with the 
@@ -27,7 +28,7 @@ Part two is more like a homework exercise in which you will work some problems
 from _Global Warming: Understanding the Forecast_ on layer models of the 
 greenhouse effect. You have the choice to do this either the traditional way, 
 using paper, or you can get extra practice with R and RMarkdown and do it
-electronically, using `Lab_02_assignment_part_2.Rmd` as a template, where you 
+electronically, using `lab_02_assignment_part_2.Rmd` as a template, where you 
 do the  calculations in R and fill in the answers in the template using 
 RMarkdown.
 
@@ -43,7 +44,7 @@ homework, and upload them.
 
 * Clone a local copy of the repository for this assignment from GitHub.
 * In your local repository, answer the exercises in the templates
-  `Lab_02_assignment_part_1.Rmd`.
+  `lab_02_assignment_part_1.Rmd`.
 * When you are done, knit your `.Rmd` files into PDF files.
 * Use Git to commit your changes (including the edits to the `.Rmd` files
   and the new PDF or Word files) to your local Git repository.
@@ -63,11 +64,11 @@ have errors that will mess up the RMarkdown formatting.
 
 **Remember that to turn in the assignment you need to:**
 
-1. Successfully **knit** `Lab_02_assignment_part_1.Rmd` into a `.pdf` or 
+1. Successfully **knit** `lab_02_assignment_part_1.Rmd` into a `.pdf` or 
    Word (`.docx`) file. 
    
      If you choose to do Part 2 in RMarkdown instead 
-     of on paper, also knit `Lab_02_assignment_part_2.Rmd`. 
+     of on paper, also knit `lab_02_assignment_part_2.Rmd`. 
      Otherwise you will turn scans or pictures of your paper homework for 
      Part 2 to Brightspace.
 2. **Commit** your `.Rmd` (rmarkdown) document **and** the `.pdf` or `.docx` 
