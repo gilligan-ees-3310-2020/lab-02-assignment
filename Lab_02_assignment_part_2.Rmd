@@ -5,14 +5,14 @@ subtitle: "Energy Balance and Layer Models of the Atmosphere"
 date: 'Lab: Mon. Feb. 1. Due: Wed. Feb. 10'
 fontsize: 12pt
 output:
-  html_document:
-    toc: true
-  github_document:
-    toc: true
   pdf_document:
     toc: true
     includes: 
       in_header: "ees3310.sty"
+  github_document:
+    toc: true
+  html_document:
+    toc: true
   word_document:
     toc: true
 ---
