@@ -42,6 +42,7 @@ format_md = function(x, digits = NULL,
                                 'engineering'),
                      comma = FALSE,
                      output_format = c("markdown", "latex")) {
+  x = unname(x)
   format = match.arg(format)
   output_format = match.arg(output_format)
   mark = ifelse(comma, ',', '')

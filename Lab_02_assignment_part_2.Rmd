@@ -1,22 +1,21 @@
 ---
-title: 'EES 3310/5310 Lab #2 Assignment, Part 2'
+title: 'EES 3310/5310 Lab #2 Assignment, Part 1'
 author: "put your name here"
-date: 'Lab: Mon. Jan. 13. Due: Fri. Jan. 24'
+date: 'Lab: Mon. Feb. 1. Due: Mon. Feb. 8'
 fontsize: "12pt"
 output:
-  github_document:
-    toc: true
-  html_document: 
-    toc: true
   pdf_document:
     toc: true
     includes:
-      in-header: "ees3310.sty"
+      in_header: "ees3310.sty"
+  html_document: 
+    toc: true
+  github_document:
+    toc: true
   word_document:
     toc: true
 subtitle: Exercises in Data Manipulation
 ---
-
 ```{r setup, include=FALSE}
 knitr::knit_hooks$set(inline = function(x) { knitr:::format_sci(x, 'md')})
 knitr::opts_chunk$set(echo = TRUE)
@@ -39,7 +38,7 @@ if (! require("pacman")) {
 }
 
 library(pacman)
-p_load(tidyverse, slider)
+p_load(knitr, tidyverse, slider)
 
 theme_set(theme_bw(base_size = 15))
 
@@ -72,6 +71,13 @@ Studies.
 The section "Exercises" has instructions about what to do and places where you 
 will fill in R code, following the instructions, in order to perform these
 analysis.
+
+To make it easier for you to find the places where you have to fill in R code,
+I have put the comment `# TODO` at the beginning of every code chunk where
+you need to fill in some code. You can search for this using RStudio's search
+(press Ctrl+F or Cmd+F to open up the search bar, and type the text you want 
+to search for, such as "TODO", into the box that says "Find")
+![RStudio find bar](_assets/images/rstudio-find-bar.png)
 
 # Worked Example
 
@@ -183,14 +189,16 @@ function. There are some missing measurements from months where the laboratory
 instruments were not working properly. These are indicated by `NA`, meaning
 "not available."
 
-We can also use the `kable()` function to format the data
-nicely as a table in an RMarkdown document:
+We can also use the `kable()` function from the `knitr` package to format the 
+data nicely as a table in an RMarkdown document. 
+Notice how I can use RMarkdown formatting in the column names and 
+caption to make the "2" in CO~2~ appear as a subscript.
 
 ```{r show_data, include=TRUE, results = "asis"}
 head(mlo_simple) %>% 
-  knitr::kable(col.names = c(year = "Year", month = "Month", date = "Date",
-                             co2 = "CO~2~ (ppm)"),
-               caption = "A table of monthly CO~2~ measurements from Mauna Loa.")
+  kable(col.names = c(year = "Year", month = "Month", date = "Date",
+                      co2 = "CO~2~ (ppm)"),
+        caption = "A table of monthly CO~2~ measurements from Mauna Loa.")
 ```
 
 
@@ -220,7 +228,7 @@ ggplot(mlo_simple, aes(x = date, y = co2)) +
 I created a caption for the figure caption by adding 
 the following specification to the header of the R code chunk in the RMarkdown 
 document:
-```
+``` r
 fig.cap="Monthly CO~2~ measurements from Mauna Loa."
 ```
 
@@ -286,7 +294,7 @@ We use the `lm` function in R to fit a straight line to the data,
 and we use the `tidy` function from the `broom` package to
 print the results of the fit nicely.
 
-R has many powerful functions to fit data, but here we will just use a very 
+R has many powerful functions to analyze data, but here we will just use a very 
 simple one. We specify the linear relationship to fit using R's formula
 language. If we want to tell R that we think `co2` is related to `date`
 by the linear relationship $co2 = a + b \times \text{date}$, then we write
@@ -294,17 +302,24 @@ the formula `co2 ~ date`. The intercept is implicit, so we don't have to spell
 it out.
 
 ```{r calc_mlo_trend, include = TRUE}
-trend = lm(co2 ~ date, data = mlo_simple)
+co2_fit = lm(co2 ~ date, data = mlo_simple)
 
 library(broom)
 
-tidy(trend)
+tidy(co2_fit)
 ```
 
 This shows us that the trend is for CO~2~ to rise by 
-`r round(summary(trend)$coefficients['date','Estimate'],2)` ppm per year, 
+`r round(summary(co2_fit)$coefficients['date','Estimate'],2)` ppm per year, 
 with an uncertainty of plus or minus
-`r signif(summary(trend)$coefficients['date','Std. Error'], 1)`.
+`r signif(summary(co2_fit)$coefficients['date','Std. Error'], 1)`.
+
+If we want to assign the value of the trend to a variable, we do it like this:
+```{r co2_trend_value}
+co2_trend = coef(co2_fit)['date']
+
+print(co2_trend)
+```
 
 We can also plot a linear trend together with the data:
 
@@ -327,6 +342,7 @@ the original `mlo_data`, which only has two columns: `date` and
 original tibble.
 
 ```{r make_mlo_seas, include=TRUE}
+# TODO
 # put your R code here
 ```
 
@@ -334,6 +350,7 @@ Now plot this with `co2.seas` on the _y_ axis and `date` on the _x_ axis,
 and a linear fit:
 
 ```{r plot_mlo_seas, include = TRUE}
+# TODO
 # put your R code here
 # remember to use geom_smooth to include a linear fit.
 ```
@@ -341,12 +358,16 @@ and a linear fit:
 Now fit a linear function to find the annual trend of `co2.seas`. Save
 the results of your fit in a variable called `trend.seas`.
 
-```{r fit_mlo_sease, include=TRUE}
+```{r fit_mlo_seas, include=TRUE}
+# TODO
 # put your R code here to set trend.seas
 ```
 
 Compare the trend you fit to the raw `co2.filled` data to the trend you fit
 to the seasonally adjusted data.
+
+**Answer:** _put your value for the trend here and discuss how it compares
+to the trend you fit to the seasonally adjusted data._
 
 ## Exercises with Global Temperature Data from NASA
 
@@ -359,7 +380,8 @@ The URL for the data file is
 
 Download this file and save it in the directory `_data/global_temp_land_sea.csv`.
 
-```{r download_giss_temp, include=TRUE}
+```{r download_giss_temp, include=TRUE, message=FALSE}
+# TODO
 # Put your R code here
 ```
 
@@ -388,7 +410,8 @@ instead of having to write the column names manually.
 Now read the file into R, using the `read_csv` function, and assign
 the resulting tibble to a variable `giss_temp`
 
-```{r read_giss_temp, include=TRUE}
+```{r read_giss_temp, include=TRUE, message=FALSE}
+# TODO
 # Put your R code here to call read_csv and read "global_temp_land_sea.csv"
 
 # Then, show the first 5 lines of giss_temp:
@@ -425,62 +448,65 @@ the average of all July temperatures measured in Nashville from 1951--1980.
 The GISS temperature data file then averages the temperature anomalies over all
 the temperature-measuring stations around the world and reports a global average
 anomaly for every month from January 1880 through the latest measurements
-available (currently, July 2017).
+available (currently December 2020).
 
 Let's focus on the months only. Use `select` to select just the columns for 
 "Year" and January through December (if you are selecting a consecutive range
-of columns between "Foo" and "Bar", you can call `select(Foo:Bar)`).
+of columns between "Foo" and "Bar" in the tibble `df`, you can call 
+`select(df, Foo:Bar)` or `df %>% select(Foo:Bar)`).
 Save the result in a variable called `giss_monthly`
 
 ```{r make_giss_monthly, include=TRUE}
+# TODO
 # put your R code here
 ```
 
 Next, it will be difficult to plot all of the data if the months are organized 
 as columns. What we want is to transform the data tibble into one with three 
 columns: "year", "month", and "anomaly". We can do this easily using the 
-`gather` function from the `tidyverse` package: 
-`gather(df, key = month, value = anomaly, -Year)`
-or `df %>% gather(key = month, value = anomaly, -Year)` will gather all of the 
-columns except `Year` (the minus sign in `select` or `gather` means to include
-all columns except the ones indicated with a minus sign) and:
+`pivot_longer` function from the `tidyverse` package: 
+`pivot_longer(df, cols = -Year, names_to = "month", values_to = "anomaly")`
+or 
+`df %>% pivot_longer(cols = -Year, names_to = "month", values_to = "anomaly")` 
+will gather all of the columns except `Year` (the minus sign in the argument to
+`cols` means to include all columns except the ones indicated with a minus sign) 
+and:
 
 * Make a new tibble with three columns: "Year", "month", and "anomaly"
 * For each row in the original tibble, make rows in the new tibble for each of 
   the columns "Jan" through "Dec", putting the name of the column in "month" 
   and the anomaly in "anomaly".
 
-Here is an example of using `gather`, using the built-in data set `presidents`,
-which lists the quarterly approval ratings for U.S. presidents from 1945--1974:
+Here is an example of using `pivot_longer`, using a data set of quarterly approval 
+ratings for U.S. presidents from 1945--1974:
 
-```{r gather_example_prep, include=TRUE}
+```{r pivot_longer_example_prep, include=TRUE}
 
-df = matrix(presidents, ncol=4, byrow = TRUE) %>%
-  as_tibble() %>% set_names(paste0("Q", 1:4)) %>% mutate(year = 1944 + seq(n()))
+df = read_rds(file.path(data_dir, "president-approval.Rds"))
 
 print("First 10 rows of df are")
 print(head(df, 10))
 ```
 
-For each year, the table has a column for the year and 
-four columns (Q1 ... Q4) that hold the quarterly 
-approval ratings for the president in that quarter.
-Now we want to gather these data into three columns:
+For each year, the table has a column for the year and four columns (Q1 ... Q4)
+that hold the quarterly approval ratings for the president in that quarter.
+Now we want to organize these data into three columns:
 one column for the year, one column to indicate the quarter,
 and one column to indicate the approval rating.
 
-We do this with the `gather` function from the `tidyverse` package.
+We do this with the `pivot_longer` function.
 
-```{ r gather_example}
-dfg = df %>% gather(key = quarter, value = approval, -year) %>%
+```{r pivot_longer_example}
+dfg = df %>% 
+  pivot_longer(cols = -year, names_to = "quarter", values_to = "approval") %>%
   arrange(year, quarter) 
 
-# the gather command gathers the data into tidy columns:
-# "key = quarter" tells gather to create a column called "quarter" and store 
-# the names of the columns that are gathered there.
-# "value = approval" tells gather to create a column called "approval" and
-# store the values from the columns there.
-# "-year" tells gather NOT to gather the column "year".
+# the pivot_longer command organizes the data into tidy columns:
+# names_to = "quarter" tells pivot_longer to create a column called "quarter" 
+# and store the names of the original columns there.
+# values_to = "approval" tells pivot_longer to create a column called "approval"
+# and store the values from the columns there.
+# cols = -year tells pivot_longer NOT to change the column "year".
 # So the approval ratings from the second quarter of 1960 will be stored in 
 # a row where the column year contains 1960, quarter contains "Q2", and 
 # approval contains the approval rating.
@@ -492,18 +518,14 @@ dfg = df %>% gather(key = quarter, value = approval, -year) %>%
 head(dfg) # print the first few rows of the tibble.
 ```
 
-Now you try to do the same thing to:
+Now you try to do the same thing to the `giss_monthly` data. 
+Use `pivot_longer` to re-organize the data to have three columns:
+one for the year, one for the name of the month, and one for the 
+temperature anomaly in that month.
+Store the result in a new variable called `giss_g`
 
-* First select just the columns of `giss_monthly` for the year and the 
-  individual months.
-
-* Next, gather all the months togeher, so there will be three columns:
-  one for the year, one for the name of the month, and one for the 
-  temperature anomaly in that month.
-
-* Store the result in a new variable called `giss_g`
-
-```{r gather_giss, include=TRUE}
+```{r pivot_longer_giss, include=TRUE}
+# TODO
 # put your R code here
 ```
 
@@ -513,9 +535,9 @@ that corresponded to the month, so June 1960 was 1960.4548?
 Here is a trick that lets us do the same for the `giss_g` data set.
 R has a data type called `factor` that it uses for managing categorical data,
 such as male versus female, Democrat versus Republican, and so on.
-Categorical factors have a textual label, but are silently represented as 
-integer numbers. Normal factors don't have a special order, so R sorts the 
-values alphabetically.
+Categorical factors have a textual label, but behind the scenes, R thinks of 
+them as integer numbers. 
+Normal factors don't have a special order, so R sorts the values alphabetically.
 However, there is another kind of factor called an ordered factor, which allows
 us to specify the order of the values.
 
@@ -528,7 +550,7 @@ ordered factor that uses the integer values 1, 2, ..., 12 to stand for
 column, `date` that holds the fractional year, just as the `date` column in
 `mlo_data` did:
 
-```
+``` r
 giss_g = giss_g %>% 
   mutate(month = ordered(month, levels = month.abb),
          date = Year + (as.integer(month) - 0.5) / 12) %>% 
@@ -550,12 +572,14 @@ Below, use code similar to what I put above to add a new `date` column to
 `giss_g`.
 
 ```{r add_date_to_giss_g, include=TRUE}
+# TODO
 # put your R code here
 ```
 
 Now plot the monthly temperature anomalies versus date:
 
 ```{r plot_giss, include=TRUE, warning = FALSE}
+# TODO
 # put your R code here
 # 
 # Here in the comments is an example of the kind of thing you might want to 
@@ -586,6 +610,7 @@ a medium dark green line for the one-year sliding average,
 and a thick dark blue line for the ten-year sliding average.
 
 ```{r plot_giss_with_smoothing, include=TRUE, warning = FALSE}
+# TODO
 # put your R code here
 # 
 # Here is an example of the outline of the kind of code you might want to 
@@ -623,31 +648,27 @@ You can make a simple condition using equalities or inequalities:
 
 * `data_subset = df %>% filter( month == "Jan")` to select all rows where the 
   month is "Jan"
-  
 * `data_subset = df %>% filter( month != "Aug")` to select all rows where the 
   month is not August.
-
 * `data_subset = df %>% filter( month %in% c("Sep", "Oct", "Nov")` to select all 
   rows where the month is one of "Sep", "Oct", or "Nov".
-
 * `data_subset = df %>% filter(year >= 1945)` to select all rows where the year 
   is greater than or equal to 1945.
-
 * `data_subset = df %>% filter(year >= 1951 & year <= 1980 )` to select all rows
   where the year is between 1951 and 1980, inclusive.
-
-* `data_subset = df %>% filter(year >= 1951 | month == "Mar")` to select all rows
-  where the year is greater than or equal to 1951 or the month is "Mar".
+* `data_subset = df %>% filter(year >= 1951 | month == "Mar")` to select all 
+  rows where the year is greater than or equal to 1951 or the month is "Mar".
   this will give all rows from January 1951 onward, plus all rows before 1951
   where the month is March.
 
-Below, create a new variable `giss_recent` and assign it a subset of `giss_g` that 
-has all the data from January 1970 through the present. Fit a linear trend to
-the monthly anomaly and report it.
+Below, create a new variable `giss_recent` and assign it a subset of `giss_g` 
+that has all the data from January 1970 through the present. Fit a linear trend 
+to the monthly anomaly and report it.
 
 What is the average change in temperature from one year to the next?
 
 ```{r giss_trend, include=TRUE}
+# TODO
 # put your R code here
 # 
 # create giss_recent
@@ -680,25 +701,19 @@ We also want to select only recent data, so we arbitrarily say we will look at
 temperatures starting in 1979, which gives us 19 years before the 1998 
 El Ni&tilde;o.
 
-We don't have a full year of data for 2017, so we want to discard that because 
-we won't get a full year average from it.
-
 If we go back to the original `giss_g` data tibble, run the following code:
 
 ```{r summarize_giss, include=TRUE}
+# TODO
 # When you are ready to run the code below, you can un-comment it in RStudio
-# by highlighting the lines you want to uncomment and pressing 
-# Ctrl + Shift + C on Windows or Cmd + Shift + C on Mac.
+# by deleting the "#" at the beginning of each line.
 #
-# (You can also comment out code using the same key combination: it works
-#  as a toggle between commented and un-commented).
-#  
 # giss_annual = giss_g %>% 
-#   filter(year >= 1979 & year < 2017) %>%
-#   group_by(year) %>% 
+#   filter(Year >= 1979) %>%
+#   group_by(Year) %>% 
 #   summarize(anomaly = mean(anomaly)) %>%
 #   ungroup() %>%
-#   mutate(date = year + 0.5)
+#   mutate(date = Year + 0.5, before = Year < 1998)
 ```
 
 This code groups the giss data by the year, so that one group will have
@@ -712,22 +727,21 @@ It is important to tell R to `ungroup` the data after we're done working with
 the groups.
 
 Finally, we set `date` to `year + 0.5` because the average of a year corresponds 
-to the middle of the year, not the beginning.
-
-Now, let's introduce a new column `after`, which indicates whether the data is 
-after the 1998 El Ni&ntilde;o:
+to the middle of the year, not the beginning and we introduce a new column 
+`before`, which indicates whether the data is before the 1998 El Ni&ntilde;o:
 
 Now plot the data and color the points for 1998 and afterward dark red to
 help us compare before and after 1998.
 
 ```{r plot_recent_giss, include=TRUE, warning = FALSE}
+# TODO
 # Here is more example code that you can uncomment and run after you get the 
 # code in the preceding chunks to run properly.
 # 
-# ggplot(giss_annual, aes(x = date, y)) +
+# ggplot(giss_annual, aes(x = date, y = anomaly)) +
 #   geom_line(size = 1) +
-#   geom_point(aes(color = year >= 1998), size = 1) +
-#   scale_color_manual(values = c(TRUE = "darkred", FALSE = "darkblue"),
+#   geom_point(aes(color = before), size = 2) +
+#   scale_color_manual(values = c("TRUE" = "darkblue", "FALSE" = "darkred"),
 #                      guide = "none") + 
 #   # ^^^ color "before" points dark blue, "after" points dark red.
 #   # guide = "none" tells ggplot not to show a legend explaining the colors.
@@ -736,9 +750,11 @@ help us compare before and after 1998.
 
 Does it look as though the red points are not rising as fast as the blue points?
 
-Let's just plot the data from 1998 on:
+Let's just plot the data from the years 1998--2011. Use the `filter` function
+to select just the date from the years 1998--2011 and pass that to `ggplot`.
 
 ```{r plot_pause, include=TRUE}
+# TODO
 # Put your R code here
 # Filter the giss_annual data to select only the years >= 1998
 # plot the data
@@ -746,29 +762,44 @@ Let's just plot the data from 1998 on:
 
 Now how does it look?
 
-Let's use the `filter` function to break the data into two different tibbles: 
-`giss_before` will have the data from 1979--1998 and the other, `giss_after` 
-will have the data from 1998 onward (note that the year 1998 appears in both
-tibbles).
+Let's use the `filter` function to break the data into two different data sets,
+which we will store in tibbles called `giss_before` and `giss_after`: 
+`giss_before` will have the data from 1979--1998 and the other, 
+`giss_after` will have the data from 1998 onward 
+(note that the year 1998 appears in both data sets).
+
+Also, use the `mutate` function to add a column called `timing` to each of the 
+split data sets and set the value of this column to "Before" for `giss_before` 
+and "After" for `giss_after`.
 
 ```{r split_giss_data, include=TRUE}
+# TODO
 # Put your R code here
 ```
 
-Now use `lm` to fit a linear trend to the temperature data in `giss_before`
+Now use `lm` to find the trend in temperature data in `giss_before`
 (from 1979--1998) and assign it to a variable `giss_trend`.
 
 Next, add a column `timing` to each of the split data sets and set
 the value of this column to "Before" for `giss_before` and "After" for
 `giss_after`.
 
-```{r add_timing, include=TRUE}
+```{r get_trend_before, include=TRUE}
+# TODO
 # Put your R code here
 ```
 
-Now, combine the two tibbles into one tibble:
+Next, combine the two tibbles into one tibble, using the `bind_rows` function.
+If you have created the `giss_before` and `giss_after` tibbles, then you 
+can un-comment the code below to combine them.
 
 ```{r combine_giss, include=TRUE, warning = FALSE}
+# TODO
+# After you have created two tibbles, giss_before and giss_after,
+# then you can un-comment the line of code below and it will run.
+# I have commented it because it will cause an error if you knit the document 
+# before you add code to create those tibbles.
+# 
 # giss_combined = bind_rows(giss_before, giss_after)
 ```
 
@@ -787,7 +818,8 @@ Now let's use ggplot to plot `giss_combined`:
   color = "blue", fill = "blue", alpha = 0.2, fullrange = TRUE)` 
   to show a linear trend that is fit just to the `giss_before` data.
 
-```{r plot_combined, include = TRUE}
+```{r plot_combined, include = TRUE, message = FALSE}
+# TODO
 # Put your R code here.
 ```
 
@@ -813,6 +845,12 @@ How many of the red points fall above the trend line?
 
 **Answer:** _put your answer here._
 
-What do you conclude about whether global warming paused or stopped after 1998?
+If we just look at the years 1998--2012, how many of the red points
+fall above vs. below the trend line?
+
+**Answer:** _put your answer here._
+
+What do you conclude about whether global warming paused or stopped for several
+years after 1998?
 
 **Answer:** _put your answer here._
