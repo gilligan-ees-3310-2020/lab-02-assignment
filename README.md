@@ -14,8 +14,8 @@ We will spend most of lab working through these exercises, and you will finish
 it at home.
 
 This repository includes both printed instructions 
-(`Lab_02_assignment_part_2.pdf`) and a version that you can read online on
-GitHub ([`Lab_02_assignment_part_2.md`](Lab_02_assignment_part_2.md)).
+(`Lab_02_assignment_part_1.pdf`) and a version that you can read online on
+GitHub ([`Lab_02_assignment_part_1.md`](Lab_02_assignment_part_1.md)).
 
 The assignment will be due by 9:00 am on Monday, Feb. 8. Please come to 
 Prof. Gilligan or Mr. de Wet's office hours if you need help with the 
