@@ -33,4 +33,19 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+*.aux
 *.bak
+*.bbl
+*.blg
+*.ilg
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+
+# Individual files
+.Rapp.history
+.Rhistory
+.RData
+.Ruserdata
