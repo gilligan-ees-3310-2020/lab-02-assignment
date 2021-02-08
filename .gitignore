@@ -49,3 +49,6 @@ vignettes/*.pdf
 .Rhistory
 .RData
 .Ruserdata
+
+lab-02-assignment-part-1-solution.Rmd
+lab-02-assignment-part-2-solution.Rmd
