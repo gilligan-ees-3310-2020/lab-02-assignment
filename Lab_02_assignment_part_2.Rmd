@@ -102,7 +102,7 @@ make_layer_diagram(1)
 
 * At the atmospheric layer, $I_{1,up} + I_{1,down} = I_{ground,up}$
 
-* At the ground, $(1 - \alpha) I_{solar} + I_{1,down} = I_{ground,up}$
+* At the ground, $(1 - \alpha) I_{solar}/4 + I_{1,down} = I_{ground,up}$
 
 We also know that
 

@@ -708,12 +708,12 @@ If we go back to the original `giss_g` data tibble, run the following code:
 # When you are ready to run the code below, you can un-comment it in RStudio
 # by deleting the "#" at the beginning of each line.
 #
-# giss_annual = giss_g %>% 
-#   filter(Year >= 1979) %>%
-#   group_by(Year) %>% 
-#   summarize(anomaly = mean(anomaly)) %>%
-#   ungroup() %>%
-#   mutate(date = Year + 0.5, before = Year < 1998)
+giss_annual = giss_g %>% 
+   filter(Year >= 1979) %>%
+   group_by(Year) %>% 
+   summarize(anomaly = mean(anomaly)) %>%
+   ungroup() %>%
+   mutate(date = Year + 0.5, before = Year < 1998)
 ```
 
 This code groups the giss data by the year, so that one group will have
