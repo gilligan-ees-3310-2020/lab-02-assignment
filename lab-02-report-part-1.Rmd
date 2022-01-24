@@ -1,7 +1,7 @@
 ---
-title: 'EES 3310/5310 Lab #2 Assignment, Part 1'
+title: 'EES 3310/5310 Lab #2 Report, Part 1'
 author: "put your name here"
-date: 'Lab: Mon. Feb. 1. Due: Mon. Feb. 8'
+date: 'Lab: Mon. Jan. 31. Due: Wed. Feb. 9'
 fontsize: "12pt"
 output:
   pdf_document:
@@ -38,7 +38,7 @@ if (! require("pacman")) {
 }
 
 library(pacman)
-p_load(knitr, tidyverse, slider)
+p_load(knitr, tidyverse, slider, broom, janitor)
 
 theme_set(theme_bw(base_size = 15))
 
@@ -56,30 +56,13 @@ mlo_url = str_c("https://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/",
 
 giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv"
 ```
-# Instructions
+# Introduction
 
-This exercise starts with a worked example that shows how to download 
+This lab report picks up from where the instructions left off.
+
+This exercise uses 
 measurements of carbon dioxide from the laboratory on Mauna Loa, Hawaii,
-that was started by C. David Keeling in 1958, analyze the data, and 
-make plots and tables to show the results of your analysis.
-
-After studying the worked example, you will do further analysis and plotting
-using both the CO~2~ data from Mauna Loa and also global temperature 
-measurements that you will download from NASA's Goddard Institute for Space 
-Studies.
-
-The section "Exercises" has instructions about what to do and places where you 
-will fill in R code, following the instructions, in order to perform these
-analysis.
-
-To make it easier for you to find the places where you have to fill in R code,
-I have put the comment `# TODO` at the beginning of every code chunk where
-you need to fill in some code. You can search for this using RStudio's search
-(press Ctrl+F or Cmd+F to open up the search bar, and type the text you want 
-to search for, such as "TODO", into the box that says "Find")
-![RStudio find bar](_assets/images/rstudio-find-bar.png)
-
-# Worked Example
+that was started by C. David Keeling in 1958.
 
 ## Downloading CO~2~ Data from Mauna Loa Observatory
 
@@ -91,245 +74,44 @@ because the winds blow over thousands of miles of open ocean before reaching
 Mauna Loa, and this means the CO~2~ measurements are very pure and 
 uncontaminated by any local sources of pollution.
 
-We can download the data from <`r mlo_url`>. We can download the file and save 
-it to the local computer using the R function `download.file`
+We start by downloading the data from <`r mlo_url`>. The code here checks to 
+see if the file already exists, so we don't download it again every time we 
+build this report.
 
 ```{r download_mlo_data, include=TRUE, message=FALSE}
-download.file(mlo_url, '_data/mlo_data.csv')
+if (!file.exists('_data/mlo_data.csv')) {
+  download.file(mlo_url, '_data/mlo_data.csv')
+}
 ```
 
-Try opening the data file in Excel or a text editor.
-
-The first 54 lines of the data file are comments describing the data. 
-These comments describe the contents of each column of data
-and explain that this data file uses the special value `-99.99` to
-indicate a missing value. The Mauna Loa Observatory started recording data
-in March 1958, so the monthly averages for January and February are missing.
-Other months are missing for some months in the record when the instruments 
-that monitor CO~2~ concentrations were not working properly.
-
-The `read_csv` function from the `tidyverse` package can read the data into R 
-and convert it into a `tibble` data structure (like a fancy data table).
-However, when R reads in `.csv` files, it expects column names to be on a 
-single row, 
-and lines 55--57 of the data file are column headings that are split across 
-multiple rows, so R will get confused if we tell it to use those rows as column 
-names.
-
-Thus, we will tell `read_csv` to read this data file, but skip the first 57 
-lines. We will also tell it not to look for column names in the data file, 
-so we will supply the column names, and we will tell it that whenever it sees 
-`-99.99`, it should interpret that as indicating a missing value, rather than 
-a measurement.
-
-Finally, R can guess what kinds of data each column contains, but for this file,
-things work a bit more smoothly if we provide this information explicitly.
-
-`read_csv` lets us specify the data type for each column by providing a string
-with one letter for each column. The letters are `i` for integer numbers,
-`d` for real numbers (i.e., numbers with a decimal point and 
-fractional parts), `n` for an unspecified number, 
-`c` for character (text) data, `l` for logical (`TRUE` or `FALSE`), 
-`D` for calendar dates, `t` for time of day, and `T` for combined date and time.
-
+After downloading the data, we process it, following the worked example in the
+instructions:
 
 ```{r import_mlo_data, include=TRUE, message=FALSE}
 mlo_data = read_csv('_data/mlo_data.csv', 
                     skip = 57,  # skip the first 57 rows
                     col_names = c('year', 'month', 'date.excel', 'date',
-                                  'co2.raw', 'co2.raw.seas', 
-                                  'co2.fit', 'co2.fit.seas',
-                                  'co2.filled', 'co2.filled.seas'),
+                                  'co2_raw', 'co2_raw_seas', 
+                                  'co2_fit', 'co2_fit_seas',
+                                  'co2_filled', 'co2_filled_seas'),
                     col_types = 'iiiddddddd', 
                     # ^^^ the first three columns are integers and the  next 
                     # 7 are real numbers
                     na = '-99.99' 
                     # ^^^ interpret -99.99 as a missing value
-)
+) %>% clean_names()
 ```
-
-Let's look at the first few rows of the data:
-
-Here is how it looks in R:
-
-```{r show_data_r, include = TRUE}
-head(mlo_data)
-```
-
-There are six different columns for the CO~2~ measurements: 
-
-* `co2.raw` is the 
-  raw measurement from the instrument. The measurements began in March 1958, so
-  there are `NA` values for January and February. In addition, there are missing
-  values for some months when the instrument was not working well.
-
-* `co2.fit` is a smoothed version of the data, which we will not use in this 
-  lab.
-
-* `co2.filled` is the same as `co2.raw`, except that where there are missing
-  values in the middle of the data, they have been filled in with interpolated
-  estimates based on measurements before and after the gap.
-
-For each of these three data series, there is also a _seasonally adjusted_
-version, which attempts to remove the effects of seasonal variation in order
-to make it easier to observe the trends.
-
-For this lab, we will focus on the `co2.filled` data series. To keep things 
-simple, we can use the `select` function from `tidyverse` to keep only certain 
-columns in the tibble and get rid of the ones we don't want.
-
 ```{r simplify_mlo_data, include = TRUE}
-mlo_simple = mlo_data %>% select(year, month, date, co2 = co2.filled)
-
-head(mlo_simple)
+mlo_simple = mlo_data %>% select(year, month, date, co2 = co2_filled)
 ```
-
-Note how we renamed the `co2.filled` column to just plain `co2` in the select
-function. There are some missing measurements from months where the laboratory
-instruments were not working properly. These are indicated by `NA`, meaning
-"not available."
-
-We can also use the `kable()` function from the `knitr` package to format the 
-data nicely as a table in an RMarkdown document. 
-Notice how I can use RMarkdown formatting in the column names and 
-caption to make the "2" in CO~2~ appear as a subscript.
-
-```{r show_data, include=TRUE, results = "asis"}
-head(mlo_simple) %>% 
-  kable(col.names = c(year = "Year", month = "Month", date = "Date",
-                      co2 = "CO~2~ (ppm)"),
-        caption = "A table of monthly CO~2~ measurements from Mauna Loa.")
-```
-
-
-
-Now, let's plot this data:
-
-```{r plot_mlo, include = TRUE, warning = FALSE, fig.show = "hold", fig.cap="Monthly CO~2~ measurements from Mauna Loa."}
-ggplot(mlo_simple, aes(x = date, y = co2)) + 
-  # ^^^ The ggplot command specifies which data to plot and the aesthetics that 
-  # define which variables to  use for the x and y axes.
-  geom_line() +   
-  # ^^^ The geom_line() command says to plot lines connnecting the data points
-  labs(x = "Year", y = "CO2 concentration (ppm)",
-       title = "Measured CO2 from Mauna Loa Observatory")
-  # ^^^ The labs() command tells ggplot what names to use in labeling the axes 
-  # and the title for the plot.
-
-  # Earlier in this .Rmd file, I called set_theme(theme_bw(base_size = 15)) 
-  # to set the default plot style. If you call ggplot() without this,
-  # you will get a different style, but you can either call theme_set
-  # or you can add a theme specification (such as 
-  # "+ theme_bw(base_size = 15)")
-  # to the end of the sequence of plotting commands in order to 
-  # apply a specific style to an individual plot.
-```
-
-I created a caption for the figure caption by adding 
-the following specification to the header of the R code chunk in the RMarkdown 
-document:
-``` r
-fig.cap="Monthly CO~2~ measurements from Mauna Loa."
-```
-
-Notice the seasonal variation in CO~2~. Every year, there is a large cycle of
-CO~2~, but underneath is a gradual and steady increase from year to year.
-If we wanted to look at the trend without the seasonal variation, we could use
-the `co2.filled.seas` column of the original tibble, but instead, let's look at
-how we might estimate this ourselves.
-
-The seasonal cycle is 12 months long and it repeats every year. This means that
-if we average the values in our table over a whole year, this cycle should 
-average out. We can do this by creating a new column `annual` where every row 
-represents the average over a year centered at that row (technically, all the 
-months from 5 months before through six months after that date).
-
-To do this, we use the function `slide_vec` from the `slider` package, as shown 
-below. The `slide_vec` function allows you to take a series
-of data (such as monthly CO~2~ measurements) and at each point, apply a function
-to the data within a "window" that includes a certain number of points 
-before and after the point in question. 
-
-Here, we apply the `mean` function to take the average, and we 
-define the "window" to be the 12 points roughly centered on the point in 
-question, so for each month in our data series, `slide_vec` takes the average 
-of the 12 measurements roughly centered on that month (technically, the month, 
-the five months before, and the six months after). You could also specify 
-`.before = 0, .after = 11` to take the 12 months starting with the given month, 
-or `.before = 11, .after = 0` to take the 12 months ending with the given month.
-
-There will be months at the beginning of the series that don't have five months 
-of data before them and points at the end of the series that don't have six 
-months after them. By default `slide_vec` sets those points to `NA`, which is a 
-special value R uses to indicate missing values (`NA` means "not available").
-
-```{r plot_mlo_annual, include = TRUE, warning = FALSE, fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa."}
-mlo_simple %>% 
-  mutate(annual = slide_vec(co2, mean, .before = 5, .after = 6)) %>%
-  ggplot(aes(x = date)) + 
-  geom_line(aes(y = co2), color = "darkblue", size = 0.1) +
-  geom_line(aes(y = annual), color = "black", size = 0.5) +
-  labs(x = "Year", y = "CO2 concentration (ppm)", 
-       title = "Measured and Seasonally Adjusted CO2")
-```
-
-But wait: we might want a legend to tell the reader what each colored line 
-represents. We can create new aesthetics for the graph mapping to do this:
-
 ```{r plot_mlo_annual_2, include = TRUE, warning=FALSE, , fig.cap="Raw and seasonally adjusted measurements of atmospheric CO~2~, from Mauna Loa, with a legend identifying the different lines."}
-mlo_simple %>% 
-  mutate(annual = slide_vec(co2, mean, .before = 5, .after = 6)) %>%
-  ggplot(aes(x = date)) + 
-  geom_line(aes(y = co2, color = "Raw"), size = 0.1) +
-  geom_line(aes(y = annual, color = "12-month average"), size = 0.5) +
-  scale_color_manual(values = c("Raw" = "darkblue", 
-                                "12-month average" = "black"),
-                     name = "Smoothing") +
-  labs(x = "Year", y = "CO2 concentration (ppm)", 
-       title = "Measured and Seasonally Adjusted CO2")
+mlo_data_adjusted = mlo_simple %>% 
+  mutate(co2_annual = slide_vec(co2, mean, .before = 5, .after = 6))
 ```
-
-We can also anlyze this data to estimate the average trend in CO~2~.
-We use the `lm` function in R to fit a straight line to the data,
-and we use the `tidy` function from the `broom` package to
-print the results of the fit nicely.
-
-R has many powerful functions to analyze data, but here we will just use a very 
-simple one. We specify the linear relationship to fit using R's formula
-language. If we want to tell R that we think `co2` is related to `date`
-by the linear relationship $co2 = a + b \times \text{date}$, then we write
-the formula `co2 ~ date`. The intercept is implicit, so we don't have to spell
-it out.
-
 ```{r calc_mlo_trend, include = TRUE}
 co2_fit = lm(co2 ~ date, data = mlo_simple)
 
 library(broom)
-
-tidy(co2_fit)
-```
-
-This shows us that the trend is for CO~2~ to rise by 
-`r round(summary(co2_fit)$coefficients['date','Estimate'],2)` ppm per year, 
-with an uncertainty of plus or minus
-`r signif(summary(co2_fit)$coefficients['date','Std. Error'], 1)`.
-
-If we want to assign the value of the trend to a variable, we do it like this:
-```{r co2_trend_value}
-co2_trend = coef(co2_fit)['date']
-
-print(co2_trend)
-```
-
-We can also plot a linear trend together with the data:
-
-```{r plot_mlo_with_fitted_trend, include = TRUE, warning=FALSE, fig.cap="Trend in atmospheric CO~2~."}
-mlo_simple %>% 
-  ggplot(aes(x = date, y = co2)) + 
-  geom_line() +
-  geom_smooth(method = 'lm') +
-  labs(x = "Year", y = "CO2 concentration (ppm)", 
-       title = "Measured CO2 and Linear Fit")
 ```
 
 # Exercises
@@ -338,7 +120,7 @@ mlo_simple %>%
 
 Using the `select` function, make a new data tibble called `mlo_seas`, from 
 the original `mlo_data`, which only has two columns: `date` and 
-`co2.seas`, where `co2.seas` is a renamed version of `co2.filled.seas` from the 
+`co2_seas`, where `co2_seas` is a renamed version of `co2_filled_seas` from the 
 original tibble.
 
 ```{r make_mlo_seas, include=TRUE}
@@ -346,7 +128,7 @@ original tibble.
 # put your R code here
 ```
 
-Now plot this with `co2.seas` on the _y_ axis and `date` on the _x_ axis,
+Now plot this with `co2_seas` on the _y_ axis and `date` on the _x_ axis,
 and a linear fit:
 
 ```{r plot_mlo_seas, include = TRUE}
@@ -355,15 +137,15 @@ and a linear fit:
 # remember to use geom_smooth to include a linear fit.
 ```
 
-Now fit a linear function to find the annual trend of `co2.seas`. Save
-the results of your fit in a variable called `trend.seas`.
+Now fit a linear function to find the annual trend of `co2_seas`. Save
+the results of your fit in a variable called `trend_seas`.
 
 ```{r fit_mlo_seas, include=TRUE}
 # TODO
-# put your R code here to set trend.seas
+# put your R code here to set trend_seas
 ```
 
-Compare the trend you fit to the raw `co2.filled` data to the trend you fit
+Compare the trend you fit to the raw `co2_filled` data to the trend you fit
 to the seasonally adjusted data.
 
 **Answer:** _put your value for the trend here and discuss how it compares
@@ -375,10 +157,14 @@ We can also download a data set from NASA's Goddard Institute for Space Studies
 (GISS), which contains the average global temperature from 1880 through the 
 present.
 
-The URL for the data file is 
-<`r giss_url`>
+The URL for the data file is stored in the variable `giss_url` so you 
+don't have to type it in here.
 
-Download this file and save it in the directory `_data/global_temp_land_sea.csv`.
+Download this file and save it in the directory 
+`_data/global_temp_land_sea.csv`.
+You may want to use `if (! file.exists(...))`, as in the example above of
+downloading the CO~2~ data, to avoid downloading the 
+file again if it already exists in your `_data` directory.
 
 ```{r download_giss_temp, include=TRUE, message=FALSE}
 # TODO
@@ -413,6 +199,7 @@ the resulting tibble to a variable `giss_temp`
 ```{r read_giss_temp, include=TRUE, message=FALSE}
 # TODO
 # Put your R code here to call read_csv and read "global_temp_land_sea.csv"
+# and assign the data to a variable giss_temp
 
 # Then, show the first 5 lines of giss_temp:
 # head(giss_temp, 5)
@@ -464,7 +251,10 @@ Save the result in a variable called `giss_monthly`
 Next, it will be difficult to plot all of the data if the months are organized 
 as columns. What we want is to transform the data tibble into one with three 
 columns: "year", "month", and "anomaly". We can do this easily using the 
-`pivot_longer` function from the `tidyverse` package: 
+`pivot_longer` function from the `tidyverse` package.
+See the worked examples for an example of using `pivot_longer()`.
+
+Here are examples of using `pivot_longer` on a variable `df`:
 `pivot_longer(df, cols = -Year, names_to = "month", values_to = "anomaly")`
 or 
 `df %>% pivot_longer(cols = -Year, names_to = "month", values_to = "anomaly")` 
@@ -477,56 +267,15 @@ and:
   the columns "Jan" through "Dec", putting the name of the column in "month" 
   and the anomaly in "anomaly".
 
-Here is an example of using `pivot_longer`, using a data set of quarterly approval 
-ratings for U.S. presidents from 1945--1974:
-
-```{r pivot_longer_example_prep, include=TRUE}
-
-df = read_rds(file.path(data_dir, "president-approval.Rds"))
-
-print("First 10 rows of df are")
-print(head(df, 10))
-```
-
-For each year, the table has a column for the year and four columns (Q1 ... Q4)
-that hold the quarterly approval ratings for the president in that quarter.
-Now we want to organize these data into three columns:
-one column for the year, one column to indicate the quarter,
-and one column to indicate the approval rating.
-
-We do this with the `pivot_longer` function.
-
-```{r pivot_longer_example}
-dfg = df %>% 
-  pivot_longer(cols = -year, names_to = "quarter", values_to = "approval") %>%
-  arrange(year, quarter) 
-
-# the pivot_longer command organizes the data into tidy columns:
-# names_to = "quarter" tells pivot_longer to create a column called "quarter" 
-# and store the names of the original columns there.
-# values_to = "approval" tells pivot_longer to create a column called "approval"
-# and store the values from the columns there.
-# cols = -year tells pivot_longer NOT to change the column "year".
-# So the approval ratings from the second quarter of 1960 will be stored in 
-# a row where the column year contains 1960, quarter contains "Q2", and 
-# approval contains the approval rating.
-#
-# the arrange command sorts the rows of the resulting tibble to put 
-# the years in ascending order, from 1945 to 1971, and within each year, 
-# sort the quarters in alphabetical order from Q1 to Q4
-
-head(dfg) # print the first few rows of the tibble.
-```
-
 Now you try to do the same thing to the `giss_monthly` data. 
-Use `pivot_longer` to re-organize the data to have three columns:
+Use `pivot_longer` to organize the data to have three columns:
 one for the year, one for the name of the month, and one for the 
 temperature anomaly in that month.
 Store the result in a new variable called `giss_g`
 
 ```{r pivot_longer_giss, include=TRUE}
 # TODO
-# put your R code here
+# put your R code here to make the variable giss_g
 ```
 
 Remember how the CO~2~ data had a column `date` that had a year plus a fraction
@@ -552,7 +301,7 @@ column, `date` that holds the fractional year, just as the `date` column in
 
 ``` r
 giss_g = giss_g %>% 
-  mutate(month = ordered(month, levels = month.abb),
+  mutate(month = factor(month, levels = month.abb, ordered = TRUE),
          date = Year + (as.integer(month) - 0.5) / 12) %>% 
   arrange(date)`
 ```
@@ -665,7 +414,7 @@ Below, create a new variable `giss_recent` and assign it a subset of `giss_g`
 that has all the data from January 1970 through the present. Fit a linear trend 
 to the monthly anomaly and report it.
 
-What is the average change in temperature from one year to the next?
+**What is the average change in temperature from one year to the next?**
 
 ```{r giss_trend, include=TRUE}
 # TODO
@@ -677,6 +426,8 @@ What is the average change in temperature from one year to the next?
 # 
 # print the coefficients of the trend.
 ```
+
+_Write some text here giving the answer_
 
 ### Did Global Warming Stop after 1998?
 
@@ -695,7 +446,8 @@ To begin with, we will take the monthly GISS temperature data and convert it to
 annual average temperatures, so we can deal with discrete years, rather than 
 separate temperatures for each month.
 
-We do this with the `group_by` and `summarize` functions.
+We do this with the `group_by` and `summarize` functions (see the 
+examples and explanation in the worked examples document).
 
 We also want to select only recent data, so we arbitrarily say we will look at
 temperatures starting in 1979, which gives us 19 years before the 1998 
@@ -707,13 +459,13 @@ If we go back to the original `giss_g` data tibble, run the following code:
 # TODO
 # When you are ready to run the code below, you can un-comment it in RStudio
 # by deleting the "#" at the beginning of each line.
-#
-giss_annual = giss_g %>% 
-   filter(Year >= 1979) %>%
-   group_by(Year) %>% 
-   summarize(anomaly = mean(anomaly)) %>%
-   ungroup() %>%
-   mutate(date = Year + 0.5, before = Year < 1998)
+
+# giss_annual = giss_g %>% 
+#    filter(Year >= 1979) %>%
+#    group_by(Year) %>% 
+#    summarize(anomaly = mean(anomaly)) %>%
+#    ungroup() %>%
+#    mutate(date = Year + 0.5, before = Year < 1998)
 ```
 
 This code groups the giss data by the year, so that one group will have
@@ -737,7 +489,7 @@ help us compare before and after 1998.
 # TODO
 # Here is more example code that you can uncomment and run after you get the 
 # code in the preceding chunks to run properly.
-# 
+ 
 # ggplot(giss_annual, aes(x = date, y = anomaly)) +
 #   geom_line(size = 1) +
 #   geom_point(aes(color = before), size = 2) +
@@ -789,16 +541,17 @@ the value of this column to "Before" for `giss_before` and "After" for
 # Put your R code here
 ```
 
-Next, combine the two tibbles into one tibble, using the `bind_rows` function.
-If you have created the `giss_before` and `giss_after` tibbles, then you 
+Next, combine the two data frames (or tibbles) into one, 
+using the `bind_rows` function.
+If you have created the data frames `giss_before` and `giss_after`, then you 
 can un-comment the code below to combine them.
 
 ```{r combine_giss, include=TRUE, warning = FALSE}
 # TODO
-# After you have created two tibbles, giss_before and giss_after,
+# After you have created two data frames or tibbles, giss_before and giss_after,
 # then you can un-comment the line of code below and it will run.
 # I have commented it because it will cause an error if you knit the document 
-# before you add code to create those tibbles.
+# before you add code to create those data frames.
 # 
 # giss_combined = bind_rows(giss_before, giss_after)
 ```
@@ -806,12 +559,12 @@ can un-comment the code below to combine them.
 Now let's use ggplot to plot `giss_combined`:
 
 * Aesthetic mapping:
-    * Use the `date` column for the _x_ variable.
-    * Use the `anomaly` column for the _y_ variable.
-    * Use the `timing` column to set the color of plot elements
+  * Use the `date` column for the _x_ variable.
+  * Use the `anomaly` column for the _y_ variable.
+  * Use the `timing` column to set the color of plot elements
 * Plot both lines and points.
-    * Set the `size` of the lines to 1
-    * Set the `size` of the points to 2
+  * Set the `size` of the lines to 1
+  * Set the `size` of the points to 2
 * Use the `scale_color_manual` function to set the color of
   "Before" to "darkblue" and "After" to "darkred"
 * Use `geom_smooth(data = giss_before, method="lm", 

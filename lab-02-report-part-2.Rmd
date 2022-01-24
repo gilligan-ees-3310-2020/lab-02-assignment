@@ -1,16 +1,16 @@
 ---
-title: 'Lab #2 Assignment, Part 2:'
+title: 'Lab #2 Report, Part 2:'
 author: "Put your name here"
 subtitle: "Energy Balance and Layer Models of the Atmosphere"
-date: 'Lab: Mon. Feb. 1. Due: Wed. Feb. 10'
+date: 'Lab: Mon. Jan. 31. Due: Wed. Feb. 9'
 fontsize: 12pt
 output:
+  github_document:
+    toc: true
   pdf_document:
     toc: true
     includes: 
       in_header: "ees3310.sty"
-  github_document:
-    toc: true
   html_document:
     toc: true
   word_document:
@@ -53,29 +53,29 @@ to do yourself:
 * **All students** do Chapter 3, exercises 2--3.
 * **Graduate students** should also do Chapter 3, exercise 1.
 
-When you the exercises from Chapter 3. You have a choice:
+When you do the exercises from Chapter 3. You have a choice:
 
 * Either you can do the exercises out of the book like regular homework and
   turn them in by posting your answers to Brightspace (if you do them with 
   pencil and paper, take a photo or scan of your work and upload the images)
 
 * Or you can do them using RMarkdown and turn them by submitting them 
-  electronically on GitHub before class starts on Friday, Jan. 24.
+  electronically on GitHub before class starts on Wednesday, Feb. 9.
   
-    To submit the homework electronically, 
+  To submit the homework electronically, 
   
-    * Accept the assignment on GitHub Classroom.
-    * Clone a local copy of the file repository from github.
-    * In your local repository, answer the exercises in the template
-      `layer_models.Rmd`.
-    * When you are done, knit your `.Rmd` file into a PDF or DOCX 
-      (Microsoft Word) file.
-    * Use git to commit your changes (including the edits to `layer_models.Rmd`
-      and the new PDF or DOCX file) to your local git repository.
-    * Push the changes from your local git repository to github.
+  * Accept the assignment on GitHub Classroom.
+  * Clone a local copy of the file repository from github.
+  * In your local repository, answer the exercises in the template
+    `layer_models.Rmd`.
+  * When you are done, knit your `.Rmd` file into a PDF or DOCX 
+    (Microsoft Word) file.
+  * Use git to commit your changes (including the edits to `layer_models.Rmd`
+    and the new PDF or DOCX file) to your local git repository.
+  * Push the changes from your local git repository to github.
 
-      The last changes that you push before the due date 
-      (9am on Feb. 8) will be graded.
+    The last changes that you push before the due date 
+    (9am on Feb. 9) will be graded.
 
 It is your choice how to do them. Either way is acceptable and will get equal
 credit.
