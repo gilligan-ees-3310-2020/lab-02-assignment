@@ -7,14 +7,14 @@ fontsize: 12pt
 output:
   github_document:
     toc: true
-  pdf_document:
-    toc: true
-    includes: 
-      in_header: "ees3310.sty"
   html_document:
     toc: true
   word_document:
     toc: true
+  pdf_document:
+    toc: true
+    includes: 
+      in_header: "ees3310.sty"
 ---
 ```{r setup, include=FALSE, echo=FALSE}
 # This section sets up some options on knitr for processing the RMarkdown file
@@ -123,7 +123,8 @@ $$(1 - \alpha) I_{solar} / 4 \varepsilon \sigma = T_{1}^4$$
 
 $$T_{1} = \sqrt[4]{\frac{(1 - \alpha) I_{solar}}{4 \varepsilon \sigma}}$$
 
-This is familiar, because it's the same as the formula for the bare-rock temperature.
+This is familiar, because it's the same as the formula for the bare-rock 
+temperature.
 
 Here is R code to calculate $I_{\text{1,up}}$ and $T_1$:
 
@@ -176,16 +177,17 @@ For the exercises, use the following numbers:
 
 > **The moon with no heat transport.** The Layer Model assumes that the 
 > temperature of the body in space is all the same. This is not really very 
-> accurate, as you know that it is colder at the poles than it is at the equator. 
+> accurate, as you know that it is colder at the poles than it is at the 
+> equator. 
 > For a bare rock with no atmosphere or ocean, like the moon, the situation is 
 > even worse because fluids like air and water are how heat is carried around on
 > the planet. So let us make the other extreme assumption, that there is no heat 
 > transport on a bare rock like the moon. Assume for comparability that the 
 > albedo of this world is 0.30, same as Earth's.
 >
-> What is the equilibrium temperature of the surface of the moon, on the equator, 
-> at local noon, when the sun is directly overhead? (Hint: First figure out the 
-> intensity of the local solar radiation I~solar~)
+> What is the equilibrium temperature of the surface of the moon, on the 
+> equator, at local noon, when the sun is directly overhead? (Hint: First 
+> figure out the intensity of the local solar radiation I~solar~)
 
 ```{r ex_3_1_a}
 # TODO

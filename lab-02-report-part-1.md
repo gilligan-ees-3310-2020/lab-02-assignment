@@ -3,6 +3,7 @@ EES 3310/5310 Lab #2 Report, Part 1
 put your name here
 Lab: Mon. Jan. 31. Due: Wed. Feb. 9
 
+-   [Instructions](#instructions)
 -   [Introduction](#introduction)
     -   [Downloading CO<sub>2</sub> Data from Mauna Loa
         Observatory](#downloading-co2-data-from-mauna-loa-observatory)
@@ -14,9 +15,32 @@ Lab: Mon. Jan. 31. Due: Wed. Feb. 9
         -   [Did Global Warming Stop after
             1998?](#did-global-warming-stop-after-1998)
 
-# Introduction
+# Instructions
 
-This lab report picks up from where the instructions left off.
+This lab report picks up from where the instructions and the worked
+examples left off.
+
+The section “Exercises” has instructions about what to do and places
+where you will fill in R code, following the instructions, in order to
+perform these analysis.
+
+To make it easier for you to find the places where you have to fill in R
+code, I have put the comment `# TODO` at the beginning of every code
+chunk where you need to fill in some code. You can search for this using
+RStudio’s search (press Ctrl+F or Cmd+F to open up the search bar, and
+type the text you want to search for, such as “TODO”, into the box that
+says “Find”)
+
+![RStudio find bar](_assets/images/rstudio-find-bar.png)
+
+If you wish, you may delete this “Instructions” section before you knit
+and turn in your final version of the report, so the report will begin
+with the “Introduction” section. If you do, **be sure that you have
+staged and committed all your files to git before you delete this
+section**, so that if you accidentally delete too much, you will be able
+to recover the original material.
+
+# Introduction
 
 This exercise uses measurements of carbon dioxide from the laboratory on
 Mauna Loa, Hawaii, that was started by C. David Keeling in 1958.
