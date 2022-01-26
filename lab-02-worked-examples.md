@@ -1,4 +1,4 @@
-Worked Example for EES 3310/5310 Lab #2
+Worked Examples for EES 3310/5310 Lab #2
 ================
 Jonathan Gilligan
 Lab: Mon. Jan. 31
@@ -15,7 +15,7 @@ Lab: Mon. Jan. 31
 
 # Instructions
 
-This exercise starts with a worked example that shows how to download
+This file has worked examples: The first example show how to download
 measurements of carbon dioxide from the laboratory on Mauna Loa, Hawaii,
 that was started by C. David Keeling in 1958, analyze the data, and make
 plots and tables to show the results of your analysis.
@@ -25,16 +25,9 @@ plotting using both the CO<sub>2</sub> data from Mauna Loa and also
 global temperature measurements that you will download from NASA’s
 Goddard Institute for Space Studies.
 
-The section “Exercises” has instructions about what to do and places
-where you will fill in R code, following the instructions, in order to
-perform these analysis.
-
-To make it easier for you to find the places where you have to fill in R
-code, I have put the comment `# TODO` at the beginning of every code
-chunk where you need to fill in some code. You can search for this using
-RStudio’s search (press Ctrl+F or Cmd+F to open up the search bar, and
-type the text you want to search for, such as “TODO”, into the box that
-says “Find”) ![RStudio find bar](_assets/images/rstudio-find-bar.png)
+The second example shows how to use `pivot_longer` and `pivot_wider`
+functions to manipulate a `data.frame` or `tibble`, and how to use
+grouping and summarizing functions.
 
 # Worked Example
 
@@ -227,7 +220,7 @@ ggplot(mlo_simple, aes(x = date, y = co2)) +
 ```
 
 ![Monthly CO<sub>2</sub> measurements from Mauna
-Loa.](lab-02-worked-example_files/figure-gfm/plot_mlo-1.png)
+Loa.](lab-02-worked-examples_files/figure-gfm/plot_mlo-1.png)
 
 I created a caption for the figure caption by adding the following
 specification to the header of the R code chunk in the RMarkdown
@@ -284,7 +277,7 @@ mlo_simple %>%
 
 ![Raw and seasonally adjusted measurements of atmospheric
 CO<sub>2</sub>, from Mauna
-Loa.](lab-02-worked-example_files/figure-gfm/plot_mlo_annual-1.png)
+Loa.](lab-02-worked-examples_files/figure-gfm/plot_mlo_annual-1.png)
 
 But wait: we might want a legend to tell the reader what each colored
 line represents. We can create new aesthetics for the graph mapping to
@@ -305,7 +298,7 @@ mlo_simple %>%
 
 ![Raw and seasonally adjusted measurements of atmospheric
 CO<sub>2</sub>, from Mauna Loa, with a legend identifying the different
-lines.](lab-02-worked-example_files/figure-gfm/plot_mlo_annual_2-1.png)
+lines.](lab-02-worked-examples_files/figure-gfm/plot_mlo_annual_2-1.png)
 
 We can also anlyze this data to estimate the average trend in
 CO<sub>2</sub>. We use the `lm` function in R to fit a straight line to
@@ -362,7 +355,7 @@ mlo_simple %>%
     ## `geom_smooth()` using formula 'y ~ x'
 
 ![Trend in atmospheric
-CO<sub>2</sub>.](lab-02-worked-example_files/figure-gfm/plot_mlo_with_fitted_trend-1.png)
+CO<sub>2</sub>.](lab-02-worked-examples_files/figure-gfm/plot_mlo_with_fitted_trend-1.png)
 
 # Exercises
 
@@ -518,15 +511,22 @@ average is. Functions like these often have an option to call them with
 `na.rm = TRUE`, that calculates the mean, minimum, maximum, sum, or
 whatever for the values that are known, and ignore any missing values.
 
-You can also group by multiple variables at once, so if you had weather
-data for every day over ten years, you could group by `year` and `month`
-to calculate the monthly average conditions:
+You can also group by multiple variables at once:
 
 ``` r
-# suppose the variable df_daily has daily temperatures for many years,
-# with columns year, month, day, and temperature
-#
-df_monthly = df_daily %>% group_by(year, month) %>%
-  summarize(temperature = mean(temperature, na.rm = TRUE)) %>%
+df_annual = df_long %>% group_by(year, president) %>%
+  summarize(net_approval = mean(net_approval, na.rm = TRUE)) %>%
   ungroup()
+
+head(df_annual)
 ```
+
+    ## # A tibble: 6 x 3
+    ##    year president       net_approval
+    ##   <int> <chr>                  <dbl>
+    ## 1  1945 Harry S. Truman        75.5 
+    ## 2  1946 Harry S. Truman        -2.67
+    ## 3  1947 Harry S. Truman        28.0 
+    ## 4  1948 Harry S. Truman         6.17
+    ## 5  1949 Harry S. Truman        27   
+    ## 6  1950 Harry S. Truman        -3.19
