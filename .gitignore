@@ -6,8 +6,8 @@
 .RData
 .Rproj.user/
 
-# Example code in package build process
-*-Ex.R
+# Mac ancillary files
+.DS_Store/
 
 # Output files from R CMD build
 /*.tar.gz
@@ -43,6 +43,14 @@ vignettes/*.pdf
 *.lot
 *.out
 *.toc
+*.synctez.gz
+
+# Temporary files
+*.tmp
+~*.doc*
+~*.ppt*
+~*.xls*
+*~
 
 # Individual files
 .Rapp.history
@@ -52,3 +60,5 @@ vignettes/*.pdf
 
 lab-02-assignment-part-1-solution.Rmd
 lab-02-assignment-part-2-solution.Rmd
+lab-02-part-1-solution.Rmd
+lab-02-part-2-solution.Rmd
