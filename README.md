@@ -3,7 +3,7 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 There are two parts to this assignment. 
-Both parts of the assignment are due by 9:00 am on Wednesday, Feb. 10. 
+Both parts of the assignment are due by 9:00 am on Wednesday, Feb. 9. 
 Please come to Prof. Gilligan or Mr. Belanger's office hours 
 if you need help with the assignment.
 
@@ -59,7 +59,7 @@ homework, and upload them.
 * Push the changes from your local Git repository to GitHub.
 
   The last changes that you push before the due date (9:00 AM on Wednesday, 
-  Feb. 10) will be 
+  Feb. 9) will be 
   graded.
 
 **I advise using Git to commit changes frequently as you work and push those 
@@ -75,13 +75,13 @@ have errors that will mess up the RMarkdown formatting.
 1. Successfully **knit** `lab_02_report_part_1.Rmd` into a `.pdf` or 
    Word (`.docx`) file. 
    
-     If you choose to do Part 2 in RMarkdown instead 
-     of on paper, also knit `lab_02_report_part_2.Rmd`. 
-     Otherwise you will turn scans or pictures of your paper homework for 
-     Part 2 to Brightspace.
+   If you choose to do Part 2 in RMarkdown instead 
+   of on paper, also knit `lab_02_report_part_2.Rmd`. 
+   Otherwise you will turn scans or pictures of your paper homework for 
+   Part 2 to Brightspace.
 2. **Commit** your `.Rmd` (rmarkdown) document **and** the `.pdf` or `.docx` 
    file to your local git repository on your computer.
-3. **Push** your local repository to GitHub, so Ms. Best and Prof. Gilligan 
+3. **Push** your local repository to GitHub, so Mr. Belanger and Prof. Gilligan 
    can see your final results.
 
 **The last version of your work that you have pushed by the deadline is what will be graded.**
