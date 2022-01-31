@@ -95,9 +95,9 @@ mlo_data_adjusted = mlo_simple %>%
 ```
 
 ``` r
-co2_fit = lm(co2 ~ date, data = mlo_simple)
-
 library(broom)
+co2_fit = lm(co2 ~ date, data = mlo_simple)
+co2_trend = coef(co2_fit)['date']
 ```
 
 # Exercises
@@ -124,18 +124,21 @@ axis, and a linear fit:
 ```
 
 Now fit a linear function to find the annual trend of `co2_seas`. Save
-the results of your fit in a variable called `trend_seas`.
+the results of your fit in a variable called `fit_seas`, and extract the
+trend in CO<sub>2</sub> concentration to a variable called `trend_seas`.
 
 ``` r
 # TODO
 # put your R code here to set trend_seas
 ```
 
-Compare the trend you fit to the raw `co2_filled` data to the trend you
-fit to the seasonally adjusted data.
+Compare the trend you fit to the seasonally adjusted data to the trend
+of the raw `co2_filled` data, from the workecd exampled. You can get the
+trend for the worked example from the variable `co2_fit`, which was
+defined above, in the code chunk `calc_mlo_trend`.
 
-**Answer:** *put your value for the trend here and discuss how it
-compares to the trend you fit to the seasonally adjusted data.*
+**Answer:** *put the values for the two trends here and discuss how they
+compare.*
 
 ## Exercises with Global Temperature Data from NASA
 
@@ -336,8 +339,8 @@ Now plot the monthly temperature anomalies versus date:
 
 That plot probably doesn’t look like much, because it’s very noisy. Use
 the function `slide_vec` from the package `slider` to create new columns
-in `giss_g` with 12-month and 10-year (i.e., 120-month) sliding averages
-of the anomalies.
+in `giss_g` called `smooth_1` and `smooth_10`, with 1-year (12-month)
+and 10-year (120-month) sliding averages of the anomalies.
 
 Make a new plot in which you plot a thin blue line for the monthly
 anomaly (use
@@ -357,8 +360,8 @@ for the ten-year sliding average.
 # giss_g %>% 
 #   mutate( ... ) %>% 
 #   # ^^^ fill in code for "..." in "mutate()" to add a columns called
-#   # "smooth.1" for the one-year smoothed anomaly 
-#   # and "smooth.10" for the ten-year smoothed anomaly.
+#   # "smooth_1" for the one-year smoothed anomaly 
+#   # and "smooth_10" for the ten-year smoothed anomaly.
 #   ggplot(aes( ... )) + 
 #   # ^^^ Then we send the result of mutate to ggplot() where it becomes the 
 #   # data to plot.
@@ -390,11 +393,11 @@ apply. You can make a simple condition using equalities or inequalities:
     where the month is not August.
 -   `data_subset = df %>% filter( month %in% c("Sep", "Oct", "Nov")` to
     select all rows where the month is one of “Sep”, “Oct”, or “Nov”.
--   `data_subset = df %>% filter(year >= 1945)` to select all rows where
+-   `data_subset = df %>% filter(Year >= 1945)` to select all rows where
     the year is greater than or equal to 1945.
--   `data_subset = df %>% filter(year >= 1951 & year <= 1980 )` to
+-   `data_subset = df %>% filter(Year >= 1951 & year <= 1980 )` to
     select all rows where the year is between 1951 and 1980, inclusive.
--   `data_subset = df %>% filter(year >= 1951 | month == "Mar")` to
+-   `data_subset = df %>% filter(Year >= 1951 | month == "Mar")` to
     select all rows where the year is greater than or equal to 1951 or
     the month is “Mar”. this will give all rows from January 1951
     onward, plus all rows before 1951 where the month is March.

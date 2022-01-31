@@ -4,16 +4,16 @@ author: "Jonathan Gilligan"
 date: 'Lab: Mon. Jan. 31'
 fontsize: "12pt"
 output:
+  html_document: 
+    toc: true
+  word_document:
+    toc: true
   github_document:
     toc: true
   pdf_document:
     toc: true
     includes:
       in_header: "ees3310.sty"
-  html_document: 
-    toc: true
-  word_document:
-    toc: true
 ---
 ```{r setup, include=FALSE}
 knitr::knit_hooks$set(inline = function(x) { knitr:::format_sci(x, 'md')})
