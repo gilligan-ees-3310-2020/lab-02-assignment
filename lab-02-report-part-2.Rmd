@@ -7,9 +7,9 @@ fontsize: 12pt
 output:
   github_document:
     toc: true
-  html_document:
-    toc: true
   word_document:
+    toc: true
+  html_document:
     toc: true
   pdf_document:
     toc: true

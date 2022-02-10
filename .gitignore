@@ -60,4 +60,6 @@ vignettes/*.pdf
 
 lab-*-solution.*
 lab-*-answers.*
+lab-*-solution-files/
+lab-*-answers-files/
 
