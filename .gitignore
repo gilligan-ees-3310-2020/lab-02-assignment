@@ -58,7 +58,6 @@ vignettes/*.pdf
 .RData
 .Ruserdata
 
-lab-02-assignment-part-1-solution.Rmd
-lab-02-assignment-part-2-solution.Rmd
-lab-02-part-1-solution.Rmd
-lab-02-part-2-solution.Rmd
+lab-*-solution.*
+lab-*-answers.*
+
