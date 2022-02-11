@@ -58,8 +58,8 @@ vignettes/*.pdf
 .RData
 .Ruserdata
 
-lab-*-solution.*
-lab-*-answers.*
-lab-*-solution-files/
-lab-*-answers-files/
+lab-*-solution*.*
+lab-*-answers*.*
+lab-*-solution*-files/
+lab-*-answers*-files/
 
